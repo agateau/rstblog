@@ -70,6 +70,12 @@ class Context(object):
         return not os.path.exists(self.full_destination_filename)
 
     @property
+    def is_text(self):
+        ext = os.path.splitext(self.source_filename)[1]
+        lst = self.config.get("text_extensions", (".rst", ".html"))
+        return ext in lst
+
+    @property
     def public(self):
         return self.config.get('public', True)
 
