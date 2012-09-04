@@ -28,12 +28,13 @@ from rstblog.signals import before_file_processed, \
      before_file_built, after_file_prepared, \
      after_file_published
 from rstblog.modules import find_module
-from rstblog.programs import RSTProgram, CopyProgram
+from rstblog.programs import RSTProgram, HTMLProgram, CopyProgram
 
 
 OUTPUT_FOLDER = '_build'
 builtin_programs = {
     'rst':      RSTProgram,
+    'html':     HTMLProgram,
     'copy':     CopyProgram
 }
 builtin_templates = os.path.join(os.path.dirname(__file__), 'templates')
@@ -179,7 +180,8 @@ class BuildError(ValueError):
 class Builder(object):
     default_ignores = ('.*', '_*', 'config.yml', 'Makefile', 'README', '*.conf', )
     default_programs = {
-        '*.rst':    'rst'
+        '*.rst':    'rst',
+        '*.html':   'html',
     }
     default_template_path = '_templates'
     default_static_folder = 'static'
