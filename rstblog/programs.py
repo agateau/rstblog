@@ -126,6 +126,9 @@ class HTMLProgram(TemplatedProgram):
         }
         return ctx
 
+    def render_contents(self):
+        return self.context.html
+
 
 class RSTProgram(TemplatedProgram):
     """A program that renders an rst file into a template"""
