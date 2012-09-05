@@ -9,9 +9,14 @@
     :license: BSD, see LICENSE for more details.
 """
 from __future__ import with_statement
+import os
+import re
 
 from datetime import datetime, date
-from urlparse import urljoin
+from urlparse import urlsplit, urljoin
+
+from lxml import etree
+from lxml.html import soupparser
 
 from jinja2 import contextfunction
 
@@ -145,6 +150,31 @@ def write_archive_pages(builder):
                 f.write(rv.encode('utf-8') + '\n')
 
 
+def fix_relative_urls(base_url, slug, content):
+    def process_elements(tree, tag, attribute):
+        for element in tree.iter(tag):
+            value = element.get(attribute)
+            if not value:
+                continue
+            rv = urlsplit(value)
+            if rv.netloc:
+                continue
+            path = rv.path
+            if path[0] != "/":
+                path = os.path.normpath(os.path.join(slug, path))
+            url = urljoin(base_url, path)
+            element.set(attribute, url)
+
+    tree = soupparser.fromstring(content)
+    if len(tree) == 0:
+        return content
+    process_elements(tree, "img", "src")
+    process_elements(tree, "a", "href")
+    html = etree.tostring(tree)
+    html = re.search("^<html>(.*)</html>$", html, re.DOTALL).group(1)
+    return html
+
+
 def write_feed(builder):
     blog_author = builder.config.root_get('author')
     url = builder.config.root_get('canonical_url') or 'http://localhost/'
@@ -155,7 +185,8 @@ def write_feed(builder):
                     feed_url=urljoin(url, builder.link_to('blog_feed')),
                     url=url)
     for entry in get_all_entries(builder)[:10]:
-        feed.add(entry.title, unicode(entry.render_contents()),
+        content = fix_relative_urls(url, entry.slug, entry.render_contents())
+        feed.add(entry.title, unicode(content),
                  content_type='html', author=blog_author,
                  url=urljoin(url, entry.slug),
                  updated=entry.pub_date)
