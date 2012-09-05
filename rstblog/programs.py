@@ -16,6 +16,7 @@ from datetime import datetime
 from StringIO import StringIO
 from weakref import ref
 
+from jinja2 import Environment, FileSystemLoader, Markup
 
 class Program(object):
 
@@ -73,6 +74,57 @@ class TemplatedProgram(Program):
         rv = self.context.render_template(template_name, context)
         with self.context.open_destination_file() as f:
             f.write(rv.encode('utf-8') + '\n')
+
+
+class HTMLProgram(TemplatedProgram):
+    """A program that copies an HTML file unchanged, extracting its header"""
+    default_template = 'rst_display.html'
+
+    def prepare(self):
+        headers = ['---']
+        with self.context.open_source_file() as f:
+            while True:
+                line = f.readline().rstrip()
+                if not line:
+                    break
+                headers.append(line)
+            self.context.html = f.read().decode('utf-8')
+
+        cfg = yaml.load(StringIO('\n'.join(headers)))
+        if cfg:
+            if not isinstance(cfg, dict):
+                raise ValueError('expected dict config in file "%s", got: %.40r' \
+                    % (self.context.source_filename, cfg))
+            self.context.config = self.context.config.add_from_dict(cfg)
+            self.context.destination_filename = cfg.get(
+                'destination_filename',
+                self.context.destination_filename)
+
+            title = cfg.get('title')
+
+            pub_date_override = cfg.get('pub_date')
+            if pub_date_override is not None:
+                if not isinstance(pub_date_override, datetime):
+                    pub_date_override = datetime(pub_date_override.year,
+                                                 pub_date_override.month,
+                                                 pub_date_override.day)
+                self.context.pub_date = pub_date_override
+
+            summary_override = cfg.get('summary')
+            if summary_override is not None:
+                self.context.summary = summary_override
+
+        if title is not None:
+            self.context.title = title
+
+    def get_template_context(self):
+        ctx = TemplatedProgram.get_template_context(self)
+        ctx['rst'] = {
+            'title': Markup(self.context.title).striptags(),
+            'html_title': Markup('<h2>' + self.context.title + '</h2>'),
+            'fragment': Markup(self.context.html),
+        }
+        return ctx
 
 
 class RSTProgram(TemplatedProgram):
