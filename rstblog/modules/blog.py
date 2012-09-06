@@ -151,8 +151,8 @@ def write_archive_pages(builder):
 
 
 def fix_relative_urls(base_url, slug, content):
-    def process_elements(tree, tag, attribute):
-        for element in tree.iter(tag):
+    def process_elements(parent, tag, attribute):
+        for element in parent.iter(tag):
             value = element.get(attribute)
             if not value:
                 continue
@@ -165,12 +165,12 @@ def fix_relative_urls(base_url, slug, content):
             url = urljoin(base_url, path)
             element.set(attribute, url)
 
-    tree = soupparser.fromstring(content)
-    if len(tree) == 0:
+    root = soupparser.fromstring(content)
+    if len(root) == 0:
         return content
-    process_elements(tree, "img", "src")
-    process_elements(tree, "a", "href")
-    html = etree.tostring(tree)
+    process_elements(root, "img", "src")
+    process_elements(root, "a", "href")
+    html = etree.tostring(root)
     html = re.search("^<html>(.*)</html>$", html, re.DOTALL).group(1)
     return html
 
