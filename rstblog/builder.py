@@ -317,11 +317,6 @@ class Builder(object):
         cutoff = len(self.project_folder) + 1
 
         def _walk(local_config, dirpath):
-            local_config_filename = os.path.join(dirpath, 'config.yml')
-            if os.path.isfile(local_config_filename):
-                with open(local_config_filename) as f:
-                    local_config = local_config.add_from_file(f)
-
             dirnames = []
             filenames = []
             for f in os.listdir(dirpath):
@@ -334,7 +329,14 @@ class Builder(object):
             filenames = self.filter_files(filenames, local_config)
 
             for dirname in dirnames:
-                for ctx in _walk(local_config, os.path.join(dirpath, dirname)):
+                sub_config_filename = os.path.join(dirpath, dirname, 'config.yml')
+                if os.path.isfile(sub_config_filename):
+                    with open(sub_config_filename) as f:
+                        sub_config = local_config.add_from_file(f)
+                else:
+                    sub_config = local_config
+
+                for ctx in _walk(sub_config, os.path.join(dirpath, dirname)):
                     yield ctx
 
             for filename in filenames:
