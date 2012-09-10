@@ -314,21 +314,35 @@ class Builder(object):
         return dates.format_date(date, format, locale=self.locale)
 
     def iter_contexts(self, prepare=True):
-        last_config = self.config
         cutoff = len(self.project_folder) + 1
-        for dirpath, dirnames, filenames in os.walk(self.project_folder):
-            local_config = last_config
+
+        def _walk(local_config, dirpath):
             local_config_filename = os.path.join(dirpath, 'config.yml')
             if os.path.isfile(local_config_filename):
                 with open(local_config_filename) as f:
-                    local_config = last_config.add_from_file(f)
+                    local_config = local_config.add_from_file(f)
+
+            dirnames = []
+            filenames = []
+            for f in os.listdir(dirpath):
+                if os.path.isdir(os.path.join(dirpath, f)):
+                    dirnames.append(f)
+                else:
+                    filenames.append(f)
 
             dirnames[:] = self.filter_files(dirnames, local_config)
             filenames = self.filter_files(filenames, local_config)
 
+            for dirname in dirnames:
+                for ctx in _walk(local_config, os.path.join(dirpath, dirname)):
+                    yield ctx
+
             for filename in filenames:
                 yield Context(self, local_config, os.path.join(
                     dirpath[cutoff:], filename), prepare)
+
+        for ctx in _walk(self.config, self.project_folder):
+            yield ctx
 
     def anything_needs_build(self):
         for context in self.iter_contexts(prepare=False):
