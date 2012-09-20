@@ -186,10 +186,12 @@ def write_feed(builder):
                     url=url)
     for entry in get_all_entries(builder)[:10]:
         content = fix_relative_urls(url, entry.slug, entry.render_contents())
+        categories = [{'term': x} for x in entry.tags]
         feed.add(entry.title, unicode(content),
                  content_type='html', author=blog_author,
                  url=urljoin(url, entry.slug),
-                 updated=entry.pub_date)
+                 updated=entry.pub_date,
+                 categories=categories)
     with builder.open_link_file('blog_feed') as f:
         f.write(feed.to_string().encode('utf-8') + '\n')
 
