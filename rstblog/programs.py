@@ -125,7 +125,7 @@ class HTMLProgram(TemplatedProgram):
         ctx = TemplatedProgram.get_template_context(self)
         ctx['rst'] = {
             'title': Markup(self.context.title).striptags(),
-            'html_title': Markup('<h2>' + self.context.title + '</h2>'),
+            'html_title': Markup('<h1>' + self.context.title + '</h1>'),
             'fragment': Markup(self.context.html),
         }
         return ctx
@@ -137,12 +137,14 @@ class HTMLProgram(TemplatedProgram):
 class RSTProgram(TemplatedProgram):
     """A program that renders an rst file into a template"""
     default_template = 'rst_display.html'
-    _fragment_cache = None
 
     def prepare(self):
         with self.context.open_source_file() as f:
             cfg = self.load_header(f)
-            title = self.parse_text_title(f)
+            rst = f.read().decode('utf-8')
+            rv = self.context.render_rst(rst)
+            self.context.html = rv['fragment']
+            title = rv['title']
 
         if cfg:
             self.process_header(cfg)
@@ -153,29 +155,14 @@ class RSTProgram(TemplatedProgram):
         if title is not None:
             self.context.title = title
 
-    def parse_text_title(self, f):
-        buffer = []
-        for line in f:
-            line = line.rstrip()
-            if not line:
-                break
-            buffer.append(line)
-        return self.context.render_rst('\n'.join(buffer).decode('utf-8')).get('title')
-
-    def get_fragments(self):
-        if self._fragment_cache is not None:
-            return self._fragment_cache
-        with self.context.open_source_file() as f:
-            while f.readline().strip():
-                pass
-            rv = self.context.render_rst(f.read().decode('utf-8'))
-        self._fragment_cache = rv
-        return rv
-
     def render_contents(self):
-        return self.get_fragments()['fragment']
+        return self.context.html
 
     def get_template_context(self):
         ctx = TemplatedProgram.get_template_context(self)
-        ctx['rst'] = self.get_fragments()
+        ctx['rst'] = {
+            'title': Markup(self.context.title).striptags(),
+            'html_title': Markup('<h1>' + self.context.title + '</h1>'),
+            'fragment': Markup(self.context.html),
+        }
         return ctx
