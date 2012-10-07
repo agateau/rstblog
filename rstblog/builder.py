@@ -74,7 +74,7 @@ class Context(object):
     @property
     def is_text(self):
         ext = os.path.splitext(self.source_filename)[1]
-        lst = self.config.get("text_extensions", (".rst", ".html"))
+        lst = self.config.get("text_extensions", (".rst", ".html", ".md"))
         return ext in lst
 
     @property
