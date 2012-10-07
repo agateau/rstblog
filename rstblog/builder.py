@@ -28,14 +28,15 @@ from rstblog.signals import before_file_processed, \
      before_file_built, after_file_prepared, \
      after_file_published
 from rstblog.modules import find_module
-from rstblog.programs import RSTProgram, HTMLProgram, CopyProgram
+from rstblog.programs import RSTProgram, HTMLProgram, CopyProgram, MarkdownProgram
 
 
 OUTPUT_FOLDER = '_build'
 builtin_programs = {
     'rst':      RSTProgram,
     'html':     HTMLProgram,
-    'copy':     CopyProgram
+    'copy':     CopyProgram,
+    'md':       MarkdownProgram,
 }
 builtin_templates = os.path.join(os.path.dirname(__file__), 'templates')
 url_parts_re = re.compile(r'\$(\w+|{[^}]+})')
@@ -188,6 +189,7 @@ class Builder(object):
     default_programs = {
         '*.rst':    'rst',
         '*.html':   'html',
+        '*.md':     'md',
     }
     default_template_path = '_templates'
     default_static_folder = 'static'

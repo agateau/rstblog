@@ -16,6 +16,8 @@ from datetime import datetime
 from StringIO import StringIO
 from weakref import ref
 
+import markdown
+
 from jinja2 import Environment, FileSystemLoader, Markup
 
 class Program(object):
@@ -166,3 +168,60 @@ class RSTProgram(TemplatedProgram):
             'fragment': Markup(self.context.html),
         }
         return ctx
+
+
+class MarkdownProgram(TemplatedProgram):
+    """A program that renders a markdown file into a template"""
+    default_template = 'rst_display.html'
+
+    def prepare(self):
+        with self.context.open_source_file() as f:
+            cfg = self.load_header(f)
+            md = f.read().decode('utf-8')
+            md = self.process_embedded_rst_directives(md)
+            self.context.html = markdown.markdown(md)
+
+            self.process_header(cfg)
+            self.context.title = cfg.get('title')
+
+    def render_contents(self):
+        return self.context.html
+
+    def get_template_context(self):
+        ctx = TemplatedProgram.get_template_context(self)
+        ctx['rst'] = {
+            'title': Markup(self.context.title).striptags(),
+            'html_title': Markup('<h1>' + self.context.title + '</h1>'),
+            'fragment': Markup(self.context.html),
+        }
+        return ctx
+
+
+    def process_embedded_rst_directives(self, src):
+        lst = []
+        fl = StringIO(src)
+        while True:
+            line = fl.readline()
+            if line == "":
+                break
+            if line.startswith(".."):
+                rst_lst = [line]
+                while True:
+                    line = fl.readline()
+                    if line.startswith(4 * " ") or line == "\n":
+                        rst_lst.append(line)
+                    else:
+                        rst = "".join(rst_lst)
+                        lst.append(self.process_rst_directive(rst))
+                        lst.append("\n")
+
+                        # The line we just read is not rst, don't forget to add it
+                        lst.append(line)
+                        break
+            else:
+                lst.append(line)
+        return "".join(lst)
+
+    def process_rst_directive(self, rst):
+        rv = self.context.render_rst(rst)
+        return rv['fragment']
