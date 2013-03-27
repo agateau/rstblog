@@ -170,6 +170,10 @@ def fix_relative_urls(base_url, slug, content):
         return content
     process_elements(root, "img", "src")
     process_elements(root, "a", "href")
+    process_elements(root, "video", "src")
+    process_elements(root, "video", "poster")
+    process_elements(root, "audio", "src")
+    process_elements(root, "source", "src")
     html = etree.tostring(root)
     html = re.search("^<html>(.*)</html>$", html, re.DOTALL).group(1)
     return html
