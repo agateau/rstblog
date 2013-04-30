@@ -13,7 +13,7 @@ from __future__ import absolute_import
 
 import os
 
-import PIL
+import subprocess
 
 from docutils import nodes
 from docutils.parsers.rst import directives
@@ -55,11 +55,22 @@ class ThumbImg(Image):
             return
 
         print "  Generating thumbnail for %s" % big_filename
+        cmd = [
+            "convert", "-resize", "%sx%s" % (size, size),
+            "-antialias",
+            full_big_filename, full_thumbnail_filename
+            ]
+        ret = subprocess.call(cmd)
+        if ret != 0:
+            print
+            raise Exception("Command '%s' failed with exit code %d" % (cmd, ret))
+        """
         big_img = PIL.Image.open(full_big_filename)
         ratio = max(big_img.size) / float(size)
         thumbsize = [int(x/ratio) for x in big_img.size]
         thumb_img = big_img.resize(thumbsize, PIL.Image.BILINEAR)
         thumb_img.save(full_thumbnail_filename)
+        """
 
 
 def setup(builder):
