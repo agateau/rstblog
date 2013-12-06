@@ -16,6 +16,8 @@ from datetime import datetime
 from StringIO import StringIO
 from weakref import ref
 
+from rstblog.utils import fix_relative_urls
+
 import markdown
 
 from jinja2 import Environment, FileSystemLoader, Markup
@@ -179,7 +181,10 @@ class MarkdownProgram(TemplatedProgram):
             cfg = self.load_header(f)
             md = f.read().decode('utf-8')
             md = self.process_embedded_rst_directives(md)
-            self.context.html = markdown.markdown(md)
+            html = markdown.markdown(md)
+
+            html = fix_relative_urls('/', self.context.slug, html)
+            self.context.html = html
 
             self.process_header(cfg)
             self.context.title = cfg.get('title')
