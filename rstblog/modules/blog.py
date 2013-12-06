@@ -9,14 +9,9 @@
     :license: BSD, see LICENSE for more details.
 """
 from __future__ import with_statement
-import os
-import re
 
 from datetime import datetime, date
-from urlparse import urlsplit, urljoin
-
-from lxml import etree
-from lxml.html import soupparser
+from urlparse import urljoin
 
 from jinja2 import contextfunction
 
@@ -25,7 +20,7 @@ from werkzeug.contrib.atom import AtomFeed
 
 from rstblog.signals import after_file_published, \
      before_build_finished
-from rstblog.utils import Pagination
+from rstblog.utils import Pagination, fix_relative_urls
 
 
 class MonthArchive(object):
@@ -148,35 +143,6 @@ def write_archive_pages(builder):
                     'entry':    subentry
                 })
                 f.write(rv.encode('utf-8') + '\n')
-
-
-def fix_relative_urls(base_url, slug, content):
-    def process_elements(parent, tag, attribute):
-        for element in parent.iter(tag):
-            value = element.get(attribute)
-            if not value:
-                continue
-            rv = urlsplit(value)
-            if rv.netloc:
-                continue
-            path = rv.path
-            if path[0] != "/":
-                path = os.path.normpath(os.path.join(slug, path))
-            url = urljoin(base_url, path)
-            element.set(attribute, url)
-
-    root = soupparser.fromstring(content)
-    if len(root) == 0:
-        return content
-    process_elements(root, "img", "src")
-    process_elements(root, "a", "href")
-    process_elements(root, "video", "src")
-    process_elements(root, "video", "poster")
-    process_elements(root, "audio", "src")
-    process_elements(root, "source", "src")
-    html = etree.tostring(root)
-    html = re.search("^<html>(.*)</html>$", html, re.DOTALL).group(1)
-    return html
 
 
 def write_feed(builder):

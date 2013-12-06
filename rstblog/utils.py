@@ -8,7 +8,14 @@
     :copyright: (c) 2010 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
 """
+import os
+import re
+
 from math import ceil
+from urlparse import urlsplit, urljoin
+
+from lxml import etree
+from lxml.html import soupparser
 
 from jinja2 import Markup
 
@@ -90,3 +97,32 @@ class Pagination(object):
 
     def __html__(self):
         return Markup(unicode(self))
+
+
+def fix_relative_urls(base_url, slug, content):
+    def process_elements(parent, tag, attribute):
+        for element in parent.iter(tag):
+            value = element.get(attribute)
+            if not value:
+                continue
+            rv = urlsplit(value)
+            if rv.netloc:
+                continue
+            path = rv.path
+            if path[0] != "/":
+                path = os.path.normpath(os.path.join(slug, path))
+            url = urljoin(base_url, path)
+            element.set(attribute, url)
+
+    root = soupparser.fromstring(content)
+    if len(root) == 0:
+        return content
+    process_elements(root, "img", "src")
+    process_elements(root, "a", "href")
+    process_elements(root, "video", "src")
+    process_elements(root, "video", "poster")
+    process_elements(root, "audio", "src")
+    process_elements(root, "source", "src")
+    html = etree.tostring(root)
+    html = re.search("^<html>(.*)</html>$", html, re.DOTALL).group(1)
+    return html
