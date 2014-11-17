@@ -106,7 +106,7 @@ def fix_relative_urls(base_url, slug, content):
             if not value:
                 continue
             rv = urlsplit(value)
-            if rv.netloc:
+            if rv.scheme:
                 continue
             path = rv.path
             if path[0] != "/":
