@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from __future__ import absolute_import
+
 
 import os
 
@@ -54,7 +54,7 @@ class ThumbImg(Image):
         if not need_update(full_thumbnail_filename, full_big_filename):
             return
 
-        print "  Generating thumbnail for %s" % big_filename
+        print("  Generating thumbnail for %s" % big_filename)
         cmd = [
             "convert", "-resize", "%sx%s" % (size, size),
             "-antialias",
@@ -62,7 +62,7 @@ class ThumbImg(Image):
             ]
         ret = subprocess.call(cmd)
         if ret != 0:
-            print
+            print()
             raise Exception("Command '%s' failed with exit code %d" % (cmd, ret))
         """
         big_img = PIL.Image.open(full_big_filename)

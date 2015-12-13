@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 from math import log
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from jinja2 import contextfunction
 
@@ -41,7 +41,7 @@ def get_tag_summary(builder):
     storage = builder.get_storage('tags')
     by_tag = storage.get('by_tag', {})
     result = []
-    for tag, tagged in by_tag.iteritems():
+    for tag, tagged in by_tag.items():
         result.append(Tag(tag, len(tagged)))
     result.sort(key=lambda x: x.count)
     return result
@@ -69,14 +69,14 @@ def remember_tags(context):
 def write_tagcloud_page(builder):
     with builder.open_link_file('tagcloud') as f:
         rv = builder.render_template('tagcloud.html')
-        f.write(rv.encode('utf-8') + '\n')
+        f.write(rv + '\n')
 
 
 def write_tag_feed(builder, tag):
     blog_author = builder.config.root_get('author')
     url = builder.config.root_get('canonical_url') or 'http://localhost/'
-    name = builder.config.get('feed.name') or u'Recent Blog Posts'
-    subtitle = builder.config.get('feed.subtitle') or u'Recent blog posts'
+    name = builder.config.get('feed.name') or 'Recent Blog Posts'
+    subtitle = builder.config.get('feed.subtitle') or 'Recent blog posts'
     feed = AtomFeed(name,
                     subtitle=subtitle,
                     feed_url=urljoin(url, builder.link_to('blog_feed')),
@@ -85,12 +85,12 @@ def write_tag_feed(builder, tag):
     entries = get_tagged_entries(builder, tag)
     entries.sort(key=lambda x: (x.pub_date or ''), reverse=True)
     for entry in entries[:10]:
-        feed.add(entry.title, unicode(entry.render_contents()),
+        feed.add(entry.title, str(entry.render_contents()),
                  content_type='html', author=blog_author,
                  url=urljoin(url, entry.slug),
                  updated=entry.pub_date)
     with builder.open_link_file('tagfeed', tag=tag.name) as f:
-        f.write(feed.to_string().encode('utf-8') + '\n')
+        f.write(feed.to_string() + '\n')
 
 
 def write_tag_page(builder, tag):
@@ -101,7 +101,7 @@ def write_tag_page(builder, tag):
             'tag':      tag,
             'entries':  entries
         })
-        f.write(rv.encode('utf-8') + '\n')
+        f.write(rv + '\n')
 
 
 def write_tag_files(builder):

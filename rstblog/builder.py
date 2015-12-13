@@ -12,7 +12,7 @@ import re
 import os
 import posixpath
 from fnmatch import fnmatch
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from docutils.core import publish_parts
 
@@ -157,7 +157,7 @@ class Context(object):
 
     def render_summary(self):
         if not self.summary:
-            return u''
+            return ''
         return self.render_rst(self.summary)['fragment']
 
     def add_stylesheet(self, href, type=None, media=None):
@@ -241,7 +241,7 @@ class Builder(object):
         return self.url_adapter.build(_key, values)
 
     def get_link_filename(self, _key, **values):
-        link = url_unquote(self.link_to(_key, **values).lstrip('/')).encode('utf-8')
+        link = url_unquote(self.link_to(_key, **values).lstrip('/'))
         if not link or link.endswith('/'):
             link += 'index.html'
         return os.path.join(self.default_output_folder, link)
@@ -292,7 +292,7 @@ class Builder(object):
 
     def guess_program(self, config, filename):
         mapping = config.list_entries('programs') or self.default_programs
-        for pattern, program_name in mapping.iteritems():
+        for pattern, program_name in mapping.items():
             if fnmatch(filename, pattern):
                 return program_name
         return 'copy'
@@ -362,13 +362,13 @@ class Builder(object):
             if context.needs_build:
                 key = context.is_new and 'A' or 'U'
                 context.run()
-                print key, context.source_filename
+                print(key, context.source_filename)
 
         before_build_finished.send(self)
 
     def debug_serve(self, host='127.0.0.1', port=5000):
         from rstblog.server import Server
-        print 'Serving on http://%s:%d/' % (host, port)
+        print('Serving on http://%s:%d/' % (host, port))
         try:
             Server(host, port, self).serve_forever()
         except KeyboardInterrupt:

@@ -8,12 +8,12 @@
     :copyright: (c) 2010 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
 """
-from __future__ import with_statement
+
 import os
 import yaml
 import shutil
 from datetime import datetime
-from StringIO import StringIO
+from io import StringIO
 from weakref import ref
 
 from rstblog.utils import fix_relative_urls
@@ -47,7 +47,7 @@ class Program(object):
         pass
 
     def render_contents(self):
-        return u''
+        return ''
 
     def run(self):
         raise NotImplementedError()
@@ -77,7 +77,7 @@ class TemplatedProgram(Program):
         context = self.get_template_context()
         rv = self.context.render_template(template_name, context)
         with self.context.open_destination_file() as f:
-            f.write(rv.encode('utf-8') + '\n')
+            f.write(rv + '\n')
 
     def load_header(self, f):
         headers = ['---']
@@ -116,7 +116,7 @@ class HTMLProgram(TemplatedProgram):
     def prepare(self):
         with self.context.open_source_file() as f:
             cfg = self.load_header(f)
-            self.context.html = f.read().decode('utf-8')
+            self.context.html = f.read()
 
         if cfg:
             self.process_header(cfg)
@@ -145,7 +145,7 @@ class RSTProgram(TemplatedProgram):
     def prepare(self):
         with self.context.open_source_file() as f:
             cfg = self.load_header(f)
-            rst = f.read().decode('utf-8')
+            rst = f.read()
             rv = self.context.render_rst(rst)
             self.context.html = rv['fragment']
             title = rv['title']
@@ -179,7 +179,7 @@ class MarkdownProgram(TemplatedProgram):
     def prepare(self):
         with self.context.open_source_file() as f:
             cfg = self.load_header(f)
-            md = f.read().decode('utf-8')
+            md = f.read()
             md = self.process_embedded_rst_directives(md)
             html = markdown.markdown(md)
 

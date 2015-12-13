@@ -16,20 +16,20 @@
     :license: BSD, see LICENSE for more details.
 """
 import types
-import urlparse
+import urllib.parse
 
 import jinja2
 
 def disqus_vars_from_dict(dct):
     lst = []
-    for key, value in dct.items():
+    for key, value in list(dct.items()):
         if isinstance(value, int):
-            value = unicode(value)
-        elif isinstance(value, types.StringTypes):
-            value = u'"%s"' % jinja2.Markup(value).striptags().replace('"', r'\"')
+            value = str(value)
+        elif isinstance(value, str):
+            value = '"%s"' % jinja2.Markup(value).striptags().replace('"', r'\"')
         else:
             raise Exception('Unsupported type for disqus variable %s=%r' % (key, value))
-        lst.append(u'var disqus_%s = %s;' % (key, value))
+        lst.append('var disqus_%s = %s;' % (key, value))
     return '\n'.join(lst)
 
 @jinja2.contextfunction
@@ -46,10 +46,10 @@ def get_disqus(context):
         vars['developer'] = 1
 
 
-    vars['url'] = urlparse.urljoin(config.root_get('canonical_url'), context['ctx'].slug) + '/'
+    vars['url'] = urllib.parse.urljoin(config.root_get('canonical_url'), context['ctx'].slug) + '/'
     vars['title'] = context['ctx'].title
     
-    disqus_txt=u"""
+    disqus_txt="""
 <div id="disqus_thread"></div>
 <script type="text/javascript">
     %s

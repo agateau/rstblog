@@ -13,7 +13,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from __future__ import absolute_import
+
 
 import os
 
@@ -28,7 +28,7 @@ class Flattr(Directive):
     final_argument_whitespace = False
 
     def run(self):
-        html = u'<a href="%s" target="_blank"><img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a>' % self.arguments[0]
+        html = '<a href="%s" target="_blank"><img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a>' % self.arguments[0]
 
         return [nodes.raw('', html, format='html')]
 

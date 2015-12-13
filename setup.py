@@ -1,4 +1,7 @@
+#!/usr/bin/env python3
 from setuptools import setup
+
+install_requires = ['PyYAML', 'Babel', 'blinker', 'docutils', 'Jinja2>=2.4', 'Werkzeug', 'markdown', 'pygments', 'lxml']
 
 setup(
     name='rstblog',
@@ -11,5 +14,5 @@ setup(
     entry_points = {
         'console_scripts': ['run-rstblog = rstblog.cli:main'],
     },
-    install_requires=['PyYAML', 'Babel', 'blinker', 'docutils', 'Jinja2>=2.4', 'Werkzeug', 'markdown', 'pygments', 'lxml', 'beautifulsoup']
+    install_requires=install_requires
 )

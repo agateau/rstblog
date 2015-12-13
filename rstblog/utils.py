@@ -12,10 +12,10 @@ import os
 import re
 
 from math import ceil
-from urlparse import urlsplit, urljoin
+from urllib.parse import urlsplit, urljoin
 
-from lxml import etree
-from lxml.html import soupparser
+import lxml.etree
+import lxml.html
 
 from jinja2 import Markup
 
@@ -77,7 +77,7 @@ class Pagination(object):
         from the sides.  Skipped page numbers are represented as `None`.
         """
         last = 0
-        for num in xrange(1, self.pages + 1):
+        for num in range(1, self.pages + 1):
             if num <= left_edge or \
                (num > self.page - left_current - 1 and \
                 num < self.page + right_current) or \
@@ -88,15 +88,12 @@ class Pagination(object):
                 last = num
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
-
-    def __unicode__(self):
         return self.builder.render_template('_pagination.html', {
             'pagination':   self
         })
 
     def __html__(self):
-        return Markup(unicode(self))
+        return Markup(str(self))
 
 
 def fix_relative_urls(base_url, slug, content):
@@ -114,7 +111,7 @@ def fix_relative_urls(base_url, slug, content):
             url = urljoin(base_url, path)
             element.set(attribute, url)
 
-    root = soupparser.fromstring(content)
+    root = lxml.html.fromstring(content)
     if len(root) == 0:
         return content
     process_elements(root, "img", "src")
@@ -123,6 +120,5 @@ def fix_relative_urls(base_url, slug, content):
     process_elements(root, "video", "poster")
     process_elements(root, "audio", "src")
     process_elements(root, "source", "src")
-    html = etree.tostring(root)
-    html = re.search("^<html>(.*)</html>$", html, re.DOTALL).group(1)
-    return html
+    html = lxml.etree.tostring(root).decode('utf-8')
+    return re.search("^<div>(.*)</div>$", html, re.DOTALL).group(1)

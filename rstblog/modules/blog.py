@@ -8,10 +8,10 @@
     :copyright: (c) 2010 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
 """
-from __future__ import with_statement
+
 
 from datetime import datetime, date
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from jinja2 import contextfunction
 
@@ -48,7 +48,7 @@ class YearArchive(object):
     def __init__(self, builder, year, months):
         self.year = year
         self.months = [MonthArchive(builder, year, month, entries)
-                       for month, entries in months.iteritems()]
+                       for month, entries in months.items()]
         self.months.sort(key=lambda x: -int(x.month))
         self.count = sum(len(x.entries) for x in self.months)
 
@@ -83,9 +83,8 @@ def get_all_entries(builder):
     """Returns all blog entries in reverse order"""
     result = []
     storage = builder.get_storage('blog')
-    years = storage.items()
-    for year, months in years:
-        for month, contexts in months.iteritems():
+    for year, months in storage.items():
+        for month, contexts in months.items():
             result.extend(contexts)
     result.sort(key=lambda x: (x.pub_date, x.config.get('day-order', 0)),
                 reverse=True)
@@ -95,7 +94,7 @@ def get_all_entries(builder):
 def get_archive_summary(builder):
     """Returns a summary of the stuff in the archives."""
     storage = builder.get_storage('blog')
-    years = storage.items()
+    years = list(storage.items())
     years.sort(key=lambda x: -x[0])
     return [YearArchive(builder, year, months) for year, months in years]
 
@@ -116,7 +115,7 @@ def write_index_page(builder):
                 'pagination':       pagination,
                 'show_pagination':  use_pagination
             })
-            f.write(rv.encode('utf-8') + '\n')
+            f.write(rv + '\n')
             if not use_pagination or not pagination.has_next:
                 break
             pagination = pagination.get_next()
@@ -128,28 +127,28 @@ def write_archive_pages(builder):
         rv = builder.render_template('blog/archive.html', {
             'archive':      archive
         })
-        f.write(rv.encode('utf-8') + '\n')
+        f.write(rv + '\n')
 
     for entry in archive:
         with builder.open_link_file('blog_archive', year=entry.year) as f:
             rv = builder.render_template('blog/year_archive.html', {
                 'entry':    entry
             })
-            f.write(rv.encode('utf-8') + '\n')
+            f.write(rv + '\n')
         for subentry in entry.months:
             with builder.open_link_file('blog_archive', year=entry.year,
                                         month=subentry.month) as f:
                 rv = builder.render_template('blog/month_archive.html', {
                     'entry':    subentry
                 })
-                f.write(rv.encode('utf-8') + '\n')
+                f.write(rv + '\n')
 
 
 def write_feed(builder):
     blog_author = builder.config.root_get('author')
     url = builder.config.root_get('canonical_url') or 'http://localhost/'
-    name = builder.config.get('feed.name') or u'Recent Blog Posts'
-    subtitle = builder.config.get('feed.subtitle') or u'Recent blog posts'
+    name = builder.config.get('feed.name') or 'Recent Blog Posts'
+    subtitle = builder.config.get('feed.subtitle') or 'Recent blog posts'
     feed = AtomFeed(name,
                     subtitle=subtitle,
                     feed_url=urljoin(url, builder.link_to('blog_feed')),
@@ -157,13 +156,13 @@ def write_feed(builder):
     for entry in get_all_entries(builder)[:10]:
         content = fix_relative_urls(url, entry.slug, entry.render_contents())
         categories = [{'term': x} for x in entry.tags]
-        feed.add(entry.title, unicode(content),
+        feed.add(entry.title, str(content),
                  content_type='html', author=blog_author,
                  url=urljoin(url, entry.slug),
                  updated=entry.pub_date,
                  categories=categories)
     with builder.open_link_file('blog_feed') as f:
-        f.write(feed.to_string().encode('utf-8') + '\n')
+        f.write(feed.to_string() + '\n')
 
 
 def write_blog_files(builder):
