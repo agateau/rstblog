@@ -69,7 +69,9 @@ class TemplatedProgram(Program):
     default_template = None
 
     def get_template_context(self):
-        return {}
+        return {
+            'url': self.context.url,
+        }
 
     def run(self):
         template_name = self.context.config.get('template') \

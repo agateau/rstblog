@@ -89,6 +89,11 @@ class Context(object):
             return directory.rstrip('/').replace('\\', '/')
         return posixpath.join(directory, basename).replace('\\', '/')
 
+    @property
+    def url(self):
+        base_url = self.config.get('canonical_url')
+        return base_url + self.slug
+
     def make_destination_folder(self):
         folder = self.destination_folder
         if not os.path.isdir(folder):
@@ -129,7 +134,8 @@ class Context(object):
             'program_name':     self.program_name,
             'links':            self.links,
             'ctx':              self,
-            'config':           self.config
+            'config':           self.config,
+            'url':              self.url,
         }
 
     def render_template(self, template_name, context=None):
