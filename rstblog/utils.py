@@ -121,4 +121,11 @@ def fix_relative_urls(base_url, slug, content):
     process_elements(root, "audio", "src")
     process_elements(root, "source", "src")
     html = lxml.etree.tostring(root).decode('utf-8')
-    return re.search("^<div>(.*)</div>$", html, re.DOTALL).group(1)
+
+    # Remove enclosing <div>, if any. It might not be there if the content is
+    # only one paragraph.
+    match = re.search("^<div>(.*)</div>$", html, re.DOTALL)
+    if match:
+        html = match.group(1)
+
+    return html
