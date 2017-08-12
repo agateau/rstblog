@@ -102,6 +102,8 @@ def fix_relative_urls(base_url, slug, content):
             value = element.get(attribute)
             if not value:
                 continue
+            if value == '#':
+                continue
             rv = urlsplit(value)
             if rv.netloc or rv.scheme:
                 continue
