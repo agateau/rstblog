@@ -10,8 +10,9 @@
 """
 
 import os
-import yaml
 import shutil
+import subprocess
+
 from datetime import datetime
 from io import StringIO
 from weakref import ref
@@ -19,6 +20,7 @@ from weakref import ref
 from rstblog.utils import fix_relative_urls
 
 import markdown
+import yaml
 
 from jinja2 import Environment, FileSystemLoader, Markup
 
@@ -63,6 +65,18 @@ class CopyProgram(Program):
 
     def get_desired_filename(self):
         return self.context.source_filename
+
+
+class SCSSProgram(Program):
+    """A program that processes an SCSS file"""
+    def run(self):
+        self.context.make_destination_folder()
+        subprocess.check_call(['sassc', '--sourcemap', '-t', 'compact',
+                               self.context.full_source_filename,
+                               self.context.full_destination_filename])
+
+    def get_desired_filename(self):
+        return self.context.source_filename.replace('scss', 'css')
 
 
 class TemplatedProgram(Program):
