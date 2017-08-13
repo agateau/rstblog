@@ -25,10 +25,10 @@ TEMPLATE = """
 <div class="gallery-main center">
     <div class="gallery-main-view-container">
         <a id="gallery-prev" class="gallery-nav gallery-nav-left" href="#">
-            <span class="gallery-nav-icon icon-backward"></span>
+            <span class="gallery-nav-icon icon-backward">←</span>
         </a>
         <a id="gallery-next" class="gallery-nav gallery-nav-right" href="#">
-            <span class="gallery-nav-icon icon-forward"></span>
+            <span class="gallery-nav-icon icon-forward">→</span>
         </a>
         <img id="gallery-main-view">
     </div>
