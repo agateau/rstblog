@@ -162,7 +162,6 @@ def generate_thumbnail(base_path, image_relpath, size):
         'convert', '-resize', '%sx%s' % (size, size), '-antialias',
         image_abspath, thumbnail_abspath
     ]
-    print(cmd)
     ret = subprocess.call(cmd)
     if ret != 0:
         print()
