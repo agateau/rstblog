@@ -83,7 +83,7 @@ def write_tag_feed(builder, tag):
                     url=url)
 
     entries = get_tagged_entries(builder, tag)
-    entries.sort(key=lambda x: (x.pub_date or ''), reverse=True)
+    entries.sort(key=lambda x: x.pub_date, reverse=True)
     for entry in entries[:10]:
         feed.add(entry.title, str(entry.render_contents()),
                  content_type='html', author=blog_author,
