@@ -22,7 +22,7 @@ import jinja2
 
 def disqus_vars_from_dict(dct):
     lst = []
-    for key, value in list(dct.items()):
+    for key, value in sorted(list(dct.items())):
         if isinstance(value, int):
             value = str(value)
         elif isinstance(value, str):
