@@ -20,26 +20,11 @@ import yaml
 
 DEFAULT_THUMB_SIZE = 200
 
-
 TEMPLATE = """
-<div class="gallery-main center">
-    <div class="gallery-main-view-container">
-        <a id="gallery-prev" class="gallery-nav gallery-nav-left" href="#">
-            <span class="gallery-nav-icon icon-backward">←</span>
-        </a>
-        <a id="gallery-next" class="gallery-nav gallery-nav-right" href="#">
-            <span class="gallery-nav-icon icon-forward">→</span>
-        </a>
-        <img id="gallery-main-view">
-    </div>
-    <div id="gallery-main-caption" class="center">
-    </div>
-</div>
-
 <ul class="thumbnails center" style="clear: both">
 {% for item in images %}
-    <li><a class="gallery-thumbnail" href="#" data-full="{{ item.full }}" title="{{ item.alt }}"
-        ><img class="gallery-thumbnail"
+    <li><a class="reference external image-reference" href="{{ item.full }}" title="{{ item.alt }}"
+        ><img
             alt="{{ item.alt }}"
             src="{{ item.thumbnail }}"
         ></a></li>
@@ -49,8 +34,6 @@ TEMPLATE = """
 
 
 class Gallery(Directive):
-    # option_spec = dict(Directive.option_spec,
-    #                    **{'thumbsize': directives.nonnegative_int})
     option_spec = dict(thumbsize=directives.nonnegative_int)
 
     has_content = True
