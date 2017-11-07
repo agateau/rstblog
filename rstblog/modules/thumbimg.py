@@ -25,10 +25,10 @@ class ThumbImg(Image):
 
         big_filename = directives.uri(self.arguments[0])
         document_dirname = directiveutils.get_document_dirname(self)
-        thumbnail_filename = utils.generate_thumbnail(document_dirname,
-                                                      big_filename, size)
+        thumbnail = utils.generate_thumbnail(document_dirname,
+                                             big_filename, size)
 
-        self.arguments[0] = thumbnail_filename
+        self.arguments[0] = thumbnail.relpath
         self.options["target"] = big_filename
         return super(ThumbImg, self).run()
 

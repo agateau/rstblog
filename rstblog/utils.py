@@ -10,15 +10,17 @@
 """
 import os
 import re
-import subprocess
 
 from math import ceil
 from urllib.parse import urlsplit, urljoin
+from collections import namedtuple
 
 import lxml.etree
 import lxml.html
 
 from jinja2 import Markup
+
+import PIL.Image
 
 
 class Pagination(object):
@@ -143,10 +145,13 @@ def need_update(dst, src):
     return os.path.getmtime(src) > os.path.getmtime(dst)
 
 
+Thumbnail = namedtuple("Thumbnail", ("relpath", "width", "height"))
+
+
 def generate_thumbnail(base_path, image_relpath, size):
     """
     Generates or updates a thumbnail for an image at $base_path/$image_relpath.
-    Returns the relative path to the thumbnail.
+    Returns a Thumbnail
     """
     dirname, basename = os.path.split(image_relpath)
     thumbnail_relpath = os.path.join(dirname, 'thumb_' + basename)
@@ -154,24 +159,15 @@ def generate_thumbnail(base_path, image_relpath, size):
     thumbnail_abspath = os.path.join(base_path, thumbnail_relpath)
     image_abspath = os.path.join(base_path, image_relpath)
 
-    if not need_update(thumbnail_abspath, image_abspath):
-        return thumbnail_relpath
+    if need_update(thumbnail_abspath, image_abspath):
+        print('  Generating thumbnail for {}'.format(image_relpath))
+        big_img = PIL.Image.open(image_abspath)
+        ratio = max(big_img.size) / float(size)
+        thumb_size = [int(x/ratio) for x in big_img.size]
+        thumb_img = big_img.resize(thumb_size, PIL.Image.BILINEAR)
+        thumb_img.save(thumbnail_abspath)
+    else:
+        thumb_img = PIL.Image.open(thumbnail_abspath)
+        thumb_size = thumb_img.size
 
-    print('  Generating thumbnail for {}'.format(image_relpath))
-    cmd = [
-        'convert', '-resize', '%sx%s' % (size, size), '-antialias',
-        image_abspath, thumbnail_abspath
-    ]
-    ret = subprocess.call(cmd)
-    if ret != 0:
-        print()
-        raise Exception('Command "{}" failed with exit code {}'
-                        .format(cmd, ret))
-    """
-    big_img = PIL.Image.open(image_abspath)
-    ratio = max(big_img.size) / float(size)
-    thumbsize = [int(x/ratio) for x in big_img.size]
-    thumb_img = big_img.resize(thumbsize, PIL.Image.BILINEAR)
-    thumb_img.save(thumbnail_abspath)
-    """
-    return thumbnail_relpath
+    return Thumbnail(thumbnail_relpath, *thumb_size)

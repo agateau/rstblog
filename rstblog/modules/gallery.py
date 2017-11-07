@@ -25,6 +25,8 @@ TEMPLATE = """
 {% for item in images %}
     <li><a class="reference external image-reference" href="{{ item.full }}" title="{{ item.alt }}"
         ><img
+            width="{{ item.thumbnail_width }}"
+            height="{{ item.thumbnail_height }}"
             alt="{{ item.alt }}"
             src="{{ item.thumbnail }}"
         ></a></li>
@@ -51,8 +53,12 @@ class Gallery(Directive):
         images = yaml.load('\n'.join(self.content))
         base_path = directiveutils.get_document_dirname(self)
         for image in images:
-            image['thumbnail'] = utils.generate_thumbnail(base_path,
-                                                          image['full'], size)
+            thumbnail = utils.generate_thumbnail(base_path,
+                                                 image['full'], size)
+            image['thumbnail'] = thumbnail.relpath
+            image['thumbnail_width'] = thumbnail.width
+            image['thumbnail_height'] = thumbnail.height
+
         html = self.template.render(images=images)
         return [nodes.raw('', html, format='html')]
 
