@@ -148,9 +148,11 @@ def need_update(dst, src):
 Thumbnail = namedtuple("Thumbnail", ("relpath", "width", "height"))
 
 
-def generate_thumbnail(base_path, image_relpath, size):
+def generate_thumbnail(base_path, image_relpath, size, square=False):
     """
     Generates or updates a thumbnail for an image at $base_path/$image_relpath.
+    If `square` is True, crop the image in its center to produce a square
+    thumbnail.
     Returns a Thumbnail
     """
     dirname, basename = os.path.split(image_relpath)
@@ -162,12 +164,20 @@ def generate_thumbnail(base_path, image_relpath, size):
     if need_update(thumbnail_abspath, image_abspath):
         print('  Generating thumbnail for {}'.format(image_relpath))
         big_img = PIL.Image.open(image_abspath)
-        ratio = max(big_img.size) / float(size)
-        thumb_size = [int(x/ratio) for x in big_img.size]
-        thumb_img = big_img.resize(thumb_size, PIL.Image.BILINEAR)
+        if square:
+            ratio = min(big_img.size) / float(size)
+            thumb_size = [int(x/ratio) for x in big_img.size]
+            thumb_img = big_img.resize(thumb_size, PIL.Image.BILINEAR)
+            padding = [(x - size) / 2 for x in thumb_img.size]
+            thumb_img = thumb_img.crop((padding[0], padding[1],
+                                       thumb_img.width - padding[0],
+                                       thumb_img.height - padding[1]))
+        else:
+            ratio = max(big_img.size) / float(size)
+            thumb_size = [int(x/ratio) for x in big_img.size]
+            thumb_img = big_img.resize(thumb_size, PIL.Image.BILINEAR)
         thumb_img.save(thumbnail_abspath)
     else:
         thumb_img = PIL.Image.open(thumbnail_abspath)
-        thumb_size = thumb_img.size
 
-    return Thumbnail(thumbnail_relpath, *thumb_size)
+    return Thumbnail(thumbnail_relpath, *thumb_img.size)

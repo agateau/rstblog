@@ -36,7 +36,8 @@ TEMPLATE = """
 
 
 class Gallery(Directive):
-    option_spec = dict(thumbsize=directives.nonnegative_int)
+    option_spec = dict(thumbsize=directives.nonnegative_int,
+                       square=directives.flag)
 
     has_content = True
     required_arguments = 0
@@ -49,12 +50,14 @@ class Gallery(Directive):
 
     def run(self):
         size = self.options.get('thumbsize', DEFAULT_THUMB_SIZE)
+        square = 'square' in self.options
 
         images = yaml.load('\n'.join(self.content))
         base_path = directiveutils.get_document_dirname(self)
         for image in images:
             thumbnail = utils.generate_thumbnail(base_path,
-                                                 image['full'], size)
+                                                 image['full'], size,
+                                                 square=square)
             image['thumbnail'] = thumbnail.relpath
             image['thumbnail_width'] = thumbnail.width
             image['thumbnail_height'] = thumbnail.height
