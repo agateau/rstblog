@@ -22,10 +22,10 @@ from rstblog.utils import fix_relative_urls, get_html_excerpt
 import markdown
 import yaml
 
-from jinja2 import Environment, FileSystemLoader, Markup
+from jinja2 import Markup
+
 
 class Program(object):
-
     def __init__(self, context):
         self._context = ref(context)
 
@@ -104,8 +104,8 @@ class TemplatedProgram(Program):
             headers.append(line)
         cfg = yaml.load(StringIO('\n'.join(headers)))
         if cfg and not isinstance(cfg, dict):
-            raise ValueError('expected dict config in file "%s", got: %.40r' \
-                % (self.context.source_filename, cfg))
+            raise ValueError('expected dict config in file "%s", got: %.40r'
+                             % (self.context.source_filename, cfg))
         return cfg
 
     def process_header(self, cfg):
@@ -221,7 +221,6 @@ class MarkdownProgram(TemplatedProgram):
         }
         return ctx
 
-
     def process_embedded_rst_directives(self, src):
         lst = []
         fl = StringIO(src)
@@ -240,7 +239,8 @@ class MarkdownProgram(TemplatedProgram):
                         lst.append(self.process_rst_directive(rst))
                         lst.append("\n")
 
-                        # The line we just read is not rst, don't forget to add it
+                        # The line we just read is not rst, don't forget to add
+                        # it
                         lst.append(line)
                         break
             else:
