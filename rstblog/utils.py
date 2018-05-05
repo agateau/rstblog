@@ -181,3 +181,16 @@ def generate_thumbnail(base_path, image_relpath, size, square=False):
         thumb_img = PIL.Image.open(thumbnail_abspath)
 
     return Thumbnail(thumbnail_relpath, *thumb_img.size)
+
+
+BREAK_COMMENT = '\n<!-- break -->\n'
+
+
+def get_html_excerpt(content):
+    """If content contains a BREAK_COMMENT returns the text before it,
+    otherwise return None"""
+    lst = content.split(BREAK_COMMENT, 1)
+    if len(lst) == 2:
+        return lst[0].strip()
+    else:
+        return None

@@ -166,7 +166,10 @@ class Context(object):
     def render_summary(self):
         if not self.summary:
             return ''
-        return self.render_rst(self.summary)['fragment']
+        if isinstance(self.summary, Markup):
+            return self.summary
+        else:
+            return self.render_rst(self.summary)['fragment']
 
     def add_stylesheet(self, href, type=None, media=None):
         if type is None:

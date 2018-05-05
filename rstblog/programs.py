@@ -17,7 +17,7 @@ from datetime import datetime
 from io import StringIO
 from weakref import ref
 
-from rstblog.utils import fix_relative_urls
+from rstblog.utils import fix_relative_urls, get_html_excerpt
 
 import markdown
 import yaml
@@ -204,6 +204,10 @@ class MarkdownProgram(TemplatedProgram):
 
             self.process_header(cfg)
             self.context.title = cfg.get('title')
+            if self.context.summary is None:
+                excerpt = get_html_excerpt(self.context.html)
+                if excerpt:
+                    self.context.summary = Markup(excerpt)
 
     def render_contents(self):
         return self.context.html
