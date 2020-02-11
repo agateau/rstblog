@@ -203,9 +203,11 @@ def get_html_summary(content):
         return None
 
 
-def get_og_description_and_image(html_content):
-    """Return a tuple of the form description, image_url.
-    Either of the tuple members can be None.
+OgProperties = namedtuple("OgProperties", ("description", "image", "image_alt"))
+
+
+def get_og_properties(html_content):
+    """Returns on OgProperties for this html content.
 
     Uses the first <p> as description and the url of the first <img> as image.
     """
@@ -219,7 +221,9 @@ def get_og_description_and_image(html_content):
         description = None
     image = soup.find("img")
     if image:
-        url = image['src']
+        url = image["src"]
+        alt = image.get("alt")
     else:
         url = None
-    return description, url
+        alt = None
+    return OgProperties(description, url, alt)

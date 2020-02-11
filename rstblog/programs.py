@@ -18,7 +18,7 @@ from io import StringIO
 from weakref import ref
 
 from rstblog.utils import fix_relative_url, fix_relative_urls, \
-    get_html_summary, get_og_description_and_image
+    get_html_summary, get_og_properties
 
 import markdown
 import yaml
@@ -209,13 +209,14 @@ class MarkdownProgram(TemplatedProgram):
                 summary = get_html_summary(self.context.html)
                 if summary:
                     self.context.summary = Markup(summary)
-            self.context.description, image = \
-                get_og_description_and_image(html)
-            if image is not None:
+            og_properties = get_og_properties(html)
+            self.context.description = og_properties.description
+            if og_properties.image is not None:
                 base_url = self.context.config.root_get('canonical_url')
                 self.context.image = fix_relative_url(base_url,
                                                       self.context.slug,
-                                                      image)
+                                                      og_properties.image)
+                self.context.image_alt = og_properties.image_alt
 
     def render_contents(self):
         return self.context.html
