@@ -22,6 +22,8 @@ from jinja2 import Markup
 
 import PIL.Image
 
+from bs4 import BeautifulSoup
+
 
 class Pagination(object):
     """Internal helper class for paginations"""
@@ -99,6 +101,17 @@ class Pagination(object):
         return Markup(str(self))
 
 
+def fix_relative_url(base_url, slug, input_url):
+    rv = urlsplit(input_url)
+    if rv.netloc or rv.scheme:
+        # Already absolute
+        return input_url
+    path = rv.path
+    if path[0] != "/":
+        path = os.path.normpath(os.path.join(slug, path))
+    return urljoin(base_url, path)
+
+
 def fix_relative_urls(base_url, slug, content):
     def process_elements(parent, tag, attribute):
         for element in parent.iter(tag):
@@ -107,13 +120,7 @@ def fix_relative_urls(base_url, slug, content):
                 continue
             if value == '#':
                 continue
-            rv = urlsplit(value)
-            if rv.netloc or rv.scheme:
-                continue
-            path = rv.path
-            if path[0] != "/":
-                path = os.path.normpath(os.path.join(slug, path))
-            url = urljoin(base_url, path)
+            url = fix_relative_url(base_url, slug, value)
             element.set(attribute, url)
 
     root = lxml.html.fromstring(content)
@@ -186,7 +193,7 @@ def generate_thumbnail(base_path, image_relpath, size, square=False):
 BREAK_COMMENT = '\n<!-- break -->\n'
 
 
-def get_html_excerpt(content):
+def get_html_summary(content):
     """If content contains a BREAK_COMMENT returns the text before it,
     otherwise return None"""
     lst = content.split(BREAK_COMMENT, 1)
@@ -194,3 +201,25 @@ def get_html_excerpt(content):
         return lst[0].strip()
     else:
         return None
+
+
+def get_og_description_and_image(html_content):
+    """Return a tuple of the form description, image_url.
+    Either of the tuple members can be None.
+
+    Uses the first <p> as description and the url of the first <img> as image.
+    """
+    if html_content is None:
+        return None, None
+    soup = BeautifulSoup(html_content, features="lxml")
+    para = soup.find("p")
+    if para:
+        description = Markup(para).striptags()
+    else:
+        description = None
+    image = soup.find("img")
+    if image:
+        url = image['src']
+    else:
+        url = None
+    return description, url

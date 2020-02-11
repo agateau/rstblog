@@ -17,7 +17,8 @@ from datetime import datetime
 from io import StringIO
 from weakref import ref
 
-from rstblog.utils import fix_relative_urls, get_html_excerpt
+from rstblog.utils import fix_relative_url, fix_relative_urls, \
+    get_html_summary, get_og_description_and_image
 
 import markdown
 import yaml
@@ -205,9 +206,16 @@ class MarkdownProgram(TemplatedProgram):
             self.process_header(cfg)
             self.context.title = cfg.get('title')
             if self.context.summary is None:
-                excerpt = get_html_excerpt(self.context.html)
-                if excerpt:
-                    self.context.summary = Markup(excerpt)
+                summary = get_html_summary(self.context.html)
+                if summary:
+                    self.context.summary = Markup(summary)
+            self.context.description, image = \
+                get_og_description_and_image(html)
+            if image is not None:
+                base_url = self.context.config.root_get('canonical_url')
+                self.context.image = fix_relative_url(base_url,
+                                                      self.context.slug,
+                                                      image)
 
     def render_contents(self):
         return self.context.html
