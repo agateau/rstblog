@@ -156,7 +156,7 @@ def write_feed(builder):
                     url=url)
     for entry in get_all_entries(builder)[:10]:
         content = fix_relative_urls(url, entry.slug, entry.render_contents())
-        categories = [{'term': x} for x in entry.tags]
+        categories = [{'term': x} for x in sorted(entry.tags)]
         feed.add(entry.title, str(content),
                  content_type='html', author=blog_author,
                  url=urljoin(url, entry.slug),
