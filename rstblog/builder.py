@@ -8,6 +8,7 @@
     :copyright: (c) 2010 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
 """
+import logging
 import re
 import os
 import posixpath
@@ -30,6 +31,8 @@ from rstblog.signals import before_file_processed, \
 from rstblog.modules import find_module
 from rstblog.programs import RSTProgram, HTMLProgram, CopyProgram, \
     MarkdownProgram, SCSSProgram
+
+logger = logging
 
 
 OUTPUT_FOLDER = '_build'
@@ -64,7 +67,11 @@ class Context(object):
             self.builder.prefix_path.lstrip('/'),
             self.program.get_desired_filename())
         if prepare:
-            self.program.prepare()
+            try:
+                self.program.prepare()
+            except Exception:
+                logger.error("Failed to prepare %s", self.destination_filename)
+                raise
             after_file_prepared.send(self)
             if self.public:
                 after_file_published.send(self)
@@ -373,7 +380,12 @@ class Builder(object):
         for context in contexts:
             if context.needs_build:
                 key = context.is_new and 'A' or 'U'
-                context.run()
+                try:
+                    context.run()
+                except Exception:
+                    logger.error("Failed to process %s",
+                                 context.source_filename)
+                    raise
                 print(key, context.source_filename)
 
         before_build_finished.send(self)
