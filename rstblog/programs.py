@@ -25,6 +25,13 @@ import yaml
 
 from jinja2 import Markup
 
+MARKDOWN_EXTENSIONS = {
+    "fenced_code": {},
+    "codehilite": {
+        "guess_lang": False
+    }
+}
+
 
 class Program(object):
     def __init__(self, context):
@@ -198,7 +205,8 @@ class MarkdownProgram(TemplatedProgram):
             cfg = self.load_header(f)
             md = f.read()
             md = self.process_embedded_rst_directives(md)
-            html = markdown.markdown(md)
+            html = markdown.markdown(md, extensions=MARKDOWN_EXTENSIONS.keys(),
+                                     extension_configs=MARKDOWN_EXTENSIONS)
 
             html = fix_relative_urls('/', self.context.slug, html)
             self.context.html = html
