@@ -22,17 +22,14 @@ from rstblog.signals import after_file_published, \
 class Tag(object):
 
     def __init__(self, name, count):
+        self.group = name[0].lower()
         self.name = name
         self.count = count
-        self.size = 100 + log(count or 1) * 20
 
 
 @contextfunction
-def get_tags(context, limit=50):
+def get_tags(context):
     tags = get_tag_summary(context['builder'])
-    if limit:
-        tags.sort(key=lambda x: -x.count)
-        tags = tags[:limit]
     tags.sort(key=lambda x: x.name.lower())
     return tags
 
@@ -66,9 +63,9 @@ def remember_tags(context):
     context.tags = frozenset(tags)
 
 
-def write_tagcloud_page(builder):
-    with builder.open_link_file('tagcloud') as f:
-        rv = builder.render_template('tagcloud.html')
+def write_tags_page(builder):
+    with builder.open_link_file('tags') as f:
+        rv = builder.render_template('tags.html')
         f.write(rv + '\n')
 
 
@@ -105,7 +102,7 @@ def write_tag_page(builder, tag):
 
 
 def write_tag_files(builder):
-    write_tagcloud_page(builder)
+    write_tags_page(builder)
     for tag in get_tag_summary(builder):
         write_tag_page(builder, tag)
         write_tag_feed(builder, tag)
@@ -118,6 +115,6 @@ def setup(builder):
                          config_default='/tags/<tag>/')
     builder.register_url('tagfeed', config_key='modules.tags.tag_feed_url',
                          config_default='/tags/<tag>/feed.atom')
-    builder.register_url('tagcloud', config_key='modules.tags.cloud_url',
+    builder.register_url('tags', config_key='modules.tags.tags_url',
                          config_default='/tags/')
     builder.jinja_env.globals['get_tags'] = get_tags
