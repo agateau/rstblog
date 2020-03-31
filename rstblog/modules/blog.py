@@ -23,34 +23,12 @@ from rstblog.signals import after_file_published, \
 from rstblog.utils import Pagination, fix_relative_urls
 
 
-class MonthArchive(object):
-
-    def __init__(self, builder, year, month, entries):
-        self.builder = builder
-        self.year = year
-        self.month = month
-        self.entries = entries
-        entries.sort(key=lambda x: x.pub_date, reverse=True)
-
-    @property
-    def month_name(self):
-        return self.builder.format_date(date(int(self.year),
-                                        int(self.month), 1),
-                                        format='MMMM')
-
-    @property
-    def count(self):
-        return len(self.entries)
-
-
 class YearArchive(object):
 
-    def __init__(self, builder, year, months):
+    def __init__(self, builder, year, entries):
         self.year = year
-        self.months = [MonthArchive(builder, year, month, entries)
-                       for month, entries in months.items()]
-        self.months.sort(key=lambda x: -int(x.month))
-        self.count = sum(len(x.entries) for x in self.months)
+        self.entries = sorted(entries, key=lambda x: x.pub_date, reverse=True)
+        self.count = len(entries)
 
 
 def test_pattern(path, pattern):
@@ -74,8 +52,7 @@ def process_blog_entry(context):
 
     if context.pub_date is not None and context.is_text:
         context.builder.get_storage('blog') \
-            .setdefault(context.pub_date.year, {}) \
-            .setdefault(('0%d' % context.pub_date.month)[-2:], []) \
+            .setdefault(context.pub_date.year, []) \
             .append(context)
 
 
@@ -83,9 +60,8 @@ def get_all_entries(builder):
     """Returns all blog entries in reverse order"""
     result = []
     storage = builder.get_storage('blog')
-    for year, months in storage.items():
-        for month, contexts in months.items():
-            result.extend(contexts)
+    for year, contexts in storage.items():
+        result.extend(contexts)
     result.sort(key=lambda x: (x.pub_date, x.config.get('day-order', 0)),
                 reverse=True)
     return result
@@ -96,7 +72,7 @@ def get_archive_summary(builder):
     storage = builder.get_storage('blog')
     years = list(storage.items())
     years.sort(key=lambda x: -x[0])
-    return [YearArchive(builder, year, months) for year, months in years]
+    return [YearArchive(builder, year, entries) for year, entries in years]
 
 
 @contextfunction
@@ -136,13 +112,6 @@ def write_archive_pages(builder):
                 'entry':    entry
             })
             f.write(rv + '\n')
-        for subentry in entry.months:
-            with builder.open_link_file('blog_archive', year=entry.year,
-                                        month=subentry.month) as f:
-                rv = builder.render_template('blog/month_archive.html', {
-                    'entry':    subentry
-                })
-                f.write(rv + '\n')
 
 
 def write_feed(builder):
@@ -182,12 +151,6 @@ def setup(builder):
                          config_default='/page/<page>/')
     builder.register_url('blog_archive', config_key='modules.blog.archive_url',
                          config_default='/archive/')
-    builder.register_url('blog_archive',
-                         config_key='modules.blog.year_archive_url',
-                         config_default='/<year>/')
-    builder.register_url('blog_archive',
-                         config_key='modules.blog.month_archive_url',
-                         config_default='/<year>/<month>/')
     builder.register_url('blog_feed', config_key='modules.blog.feed_url',
                          config_default='/feed.atom')
     builder.jinja_env.globals.update(
