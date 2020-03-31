@@ -106,13 +106,6 @@ def write_archive_pages(builder):
         })
         f.write(rv + '\n')
 
-    for entry in archive:
-        with builder.open_link_file('blog_archive', year=entry.year) as f:
-            rv = builder.render_template('blog/year_archive.html', {
-                'entry':    entry
-            })
-            f.write(rv + '\n')
-
 
 def write_feed(builder):
     blog_author = builder.config.root_get('author')
