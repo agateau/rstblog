@@ -390,7 +390,7 @@ class Builder(object):
 
         before_build_finished.send(self)
 
-    def debug_serve(self, host='127.0.0.1', port=5000):
+    def debug_serve(self, host='0.0.0.0', port=5000):
         from rstblog.server import Server
         print('Serving on http://%s:%d/' % (host, port))
         try:
