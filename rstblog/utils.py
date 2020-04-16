@@ -20,6 +20,8 @@ import lxml.html
 
 from jinja2 import Markup
 
+from feedgen.feed import FeedGenerator
+
 import PIL.Image
 
 from bs4 import BeautifulSoup
@@ -227,3 +229,37 @@ def get_og_properties(html_content):
         url = None
         alt = None
     return OgProperties(description, url, alt)
+
+
+def generate_feed_str(builder, title, entries, subtitle=None):
+    blog_author = builder.config.root_get('author')
+    url = builder.config.root_get('canonical_url') or 'http://localhost/'
+    feed_url = urljoin(url, builder.link_to('blog_feed'))
+    subtitle = builder.config.get('feed.subtitle') or 'Recent blog posts'
+    feed = FeedGenerator()
+    feed.id(feed_url)
+    feed.title(title)
+    if subtitle:
+        feed.subtitle(subtitle)
+    feed.author(name=blog_author)
+    feed.language('en')
+    feed.link(href=url)
+    feed.link(href=feed_url, rel='self')
+
+    entries = sorted(entries, key=lambda x: x.pub_date, reverse=True)[:10]
+    feed.updated(entries[0].pub_date.astimezone())
+
+    for entry in entries:
+        entry_url = urljoin(url, entry.slug)
+        content = fix_relative_urls(url, entry.slug, entry.render_contents())
+        categories = [{'term': x} for x in sorted(entry.tags)]
+
+        feed_entry = feed.add_entry()
+        feed_entry.id(entry_url)
+        feed_entry.title(entry.title)
+        feed_entry.link(href=entry_url, rel='self')
+        feed_entry.published(entry.pub_date.astimezone())
+        feed_entry.category(categories)
+        feed_entry.content(content=content, type='html')
+
+    return str(feed.atom_str(pretty=True), 'utf-8')

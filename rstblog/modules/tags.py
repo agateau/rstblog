@@ -8,15 +8,11 @@
     :copyright: (c) 2010 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
 """
-from math import log
-from urllib.parse import urljoin
-
 from jinja2 import contextfunction
-
-from werkzeug.contrib.atom import AtomFeed
 
 from rstblog.signals import after_file_published, \
      before_build_finished
+from rstblog.utils import generate_feed_str
 
 
 class Tag(object):
@@ -70,24 +66,11 @@ def write_tags_page(builder):
 
 
 def write_tag_feed(builder, tag):
-    blog_author = builder.config.root_get('author')
-    url = builder.config.root_get('canonical_url') or 'http://localhost/'
-    name = builder.config.get('feed.name') or 'Recent Blog Posts'
-    subtitle = builder.config.get('feed.subtitle') or 'Recent blog posts'
-    feed = AtomFeed(name,
-                    subtitle=subtitle,
-                    feed_url=urljoin(url, builder.link_to('blog_feed')),
-                    url=url)
-
+    title = 'Posts tagged {}'.format(tag.name)
     entries = get_tagged_entries(builder, tag)
-    entries.sort(key=lambda x: x.pub_date, reverse=True)
-    for entry in entries[:10]:
-        feed.add(entry.title, str(entry.render_contents()),
-                 content_type='html', author=blog_author,
-                 url=urljoin(url, entry.slug),
-                 updated=entry.pub_date)
+    feed_str = generate_feed_str(builder, title, entries)
     with builder.open_link_file('tagfeed', tag=tag.name) as f:
-        f.write(feed.to_string() + '\n')
+        f.write(feed_str)
 
 
 def write_tag_page(builder, tag):

@@ -10,17 +10,16 @@
 """
 
 
-from datetime import datetime, date
+from datetime import datetime
 from urllib.parse import urljoin
 
 from jinja2 import contextfunction
 
 from werkzeug.routing import Rule, Map, NotFound
-from werkzeug.contrib.atom import AtomFeed
 
 from rstblog.signals import after_file_published, \
      before_build_finished
-from rstblog.utils import Pagination, fix_relative_urls
+from rstblog.utils import Pagination, fix_relative_urls, generate_feed_str
 
 
 class YearArchive(object):
@@ -108,24 +107,12 @@ def write_archive_pages(builder):
 
 
 def write_feed(builder):
-    blog_author = builder.config.root_get('author')
-    url = builder.config.root_get('canonical_url') or 'http://localhost/'
-    name = builder.config.get('feed.name') or 'Recent Blog Posts'
-    subtitle = builder.config.get('feed.subtitle') or 'Recent blog posts'
-    feed = AtomFeed(name,
-                    subtitle=subtitle,
-                    feed_url=urljoin(url, builder.link_to('blog_feed')),
-                    url=url)
-    for entry in get_all_entries(builder)[:10]:
-        content = fix_relative_urls(url, entry.slug, entry.render_contents())
-        categories = [{'term': x} for x in sorted(entry.tags)]
-        feed.add(entry.title, str(content),
-                 content_type='html', author=blog_author,
-                 url=urljoin(url, entry.slug),
-                 updated=entry.pub_date,
-                 categories=categories)
+    title = builder.config.get('feed.name') or 'Recent Blog Posts'
+    subtitle = builder.config.get('feed.subtitle') or None
+    entries = get_all_entries(builder)
+    feed_str = generate_feed_str(builder, title, entries, subtitle=subtitle)
     with builder.open_link_file('blog_feed') as f:
-        f.write(feed.to_string() + '\n')
+        f.write(feed_str)
 
 
 def write_blog_files(builder):
