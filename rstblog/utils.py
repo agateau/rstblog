@@ -253,13 +253,14 @@ def generate_feed_str(builder, title, entries, subtitle=None):
         entry_url = urljoin(url, entry.slug)
         content = fix_relative_urls(url, entry.slug, entry.render_contents())
         categories = [{'term': x} for x in sorted(entry.tags)]
+        pub_date = entry.pub_date.astimezone()
 
         feed_entry = feed.add_entry()
         feed_entry.id(entry_url)
         feed_entry.title(entry.title)
         feed_entry.link(href=entry_url, rel='self')
-        feed_entry.published(entry.pub_date.astimezone())
-        feed_entry.updated(entry.pub_date.astimezone())
+        feed_entry.published(pub_date)
+        feed_entry.updated(pub_date)
         feed_entry.category(categories)
         feed_entry.content(content=content, type='html')
 
