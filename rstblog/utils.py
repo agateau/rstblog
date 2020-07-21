@@ -259,6 +259,7 @@ def generate_feed_str(builder, title, entries, subtitle=None):
         feed_entry.title(entry.title)
         feed_entry.link(href=entry_url, rel='self')
         feed_entry.published(entry.pub_date.astimezone())
+        feed_entry.updated(entry.pub_date.astimezone())
         feed_entry.category(categories)
         feed_entry.content(content=content, type='html')
 
