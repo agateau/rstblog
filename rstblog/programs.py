@@ -17,6 +17,8 @@ from datetime import datetime
 from io import StringIO
 from weakref import ref
 
+from jinja2 import Template
+
 from rstblog.utils import fix_relative_url, fix_relative_urls, \
     get_html_summary, get_og_properties
 
@@ -132,6 +134,14 @@ class TemplatedProgram(Program):
 
         self.context.summary = cfg.get('summary')
 
+    def load_body(self, f, cfg):
+        """Load body of the page, process Jinja directives if necessary"""
+        body = f.read()
+        if cfg.get("jinja"):
+            tmpl = Template(body)
+            body = tmpl.render(**cfg)
+        return body
+
 
 class HTMLProgram(TemplatedProgram):
     """A program that copies an HTML file unchanged, extracting its header"""
@@ -140,7 +150,7 @@ class HTMLProgram(TemplatedProgram):
     def prepare(self):
         with self.context.open_source_file() as f:
             cfg = self.load_header(f)
-            self.context.html = f.read()
+            self.context.html = self.load_body(f, cfg)
 
         if cfg:
             self.process_header(cfg)
@@ -169,7 +179,7 @@ class RSTProgram(TemplatedProgram):
     def prepare(self):
         with self.context.open_source_file() as f:
             cfg = self.load_header(f)
-            rst = f.read()
+            rst = self.load_body(f, cfg)
             rv = self.context.render_rst(rst)
             self.context.html = rv['fragment']
             title = rv['title']
@@ -203,7 +213,7 @@ class MarkdownProgram(TemplatedProgram):
     def prepare(self):
         with self.context.open_source_file() as f:
             cfg = self.load_header(f)
-            md = f.read()
+            md = self.load_body(f, cfg)
             md = self.process_embedded_rst_directives(md)
             html = markdown.markdown(md, extensions=MARKDOWN_EXTENSIONS.keys(),
                                      extension_configs=MARKDOWN_EXTENSIONS)
