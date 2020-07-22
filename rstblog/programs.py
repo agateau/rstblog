@@ -34,6 +34,8 @@ MARKDOWN_EXTENSIONS = {
     }
 }
 
+HEADER_LIMIT = "---"
+
 
 class Program(object):
     def __init__(self, context):
@@ -106,10 +108,13 @@ class TemplatedProgram(Program):
             f.write(rv + '\n')
 
     def load_header(self, f):
-        headers = ['---']
+        headers = []
         while True:
             line = f.readline().rstrip()
-            if not line:
+            if not headers and line == HEADER_LIMIT:
+                # Skip opening limit
+                continue
+            if not line or line == HEADER_LIMIT:
                 break
             headers.append(line)
         cfg = yaml.load(StringIO('\n'.join(headers)))
