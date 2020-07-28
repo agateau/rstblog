@@ -216,6 +216,12 @@ class MarkdownProgram(TemplatedProgram):
     default_template = 'rst_display.html'
 
     def prepare(self):
+        def url_for_path(path):
+            if path is None:
+                return None
+            base_url = self.context.config.root_get('canonical_url')
+            return fix_relative_url(base_url, self.context.slug, path)
+
         with self.context.open_source_file() as f:
             cfg = self.load_header(f)
             md = self.load_body(f, cfg)
@@ -233,12 +239,11 @@ class MarkdownProgram(TemplatedProgram):
                 if summary:
                     self.context.summary = Markup(summary)
             og_properties = get_og_properties(html)
-            self.context.description = og_properties.description
-            if og_properties.image is not None:
-                base_url = self.context.config.root_get('canonical_url')
-                self.context.image = fix_relative_url(base_url,
-                                                      self.context.slug,
-                                                      og_properties.image)
+            self.context.description = cfg.get('description', og_properties.description)
+            self.context.image = url_for_path(cfg.get('image'))
+            self.context.image_alt = cfg.get('image_alt')
+            if self.context.image is None and og_properties.image is not None:
+                self.context.image = url_for_path(og_properties.image)
                 self.context.image_alt = og_properties.image_alt
 
     def render_contents(self):
