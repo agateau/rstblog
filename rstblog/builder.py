@@ -375,9 +375,8 @@ class Builder(object):
 
     def run(self):
         self.storage.clear()
-        contexts = list(self.iter_contexts())
 
-        for context in contexts:
+        for context in self.iter_contexts():
             if context.needs_build:
                 key = context.is_new and 'A' or 'U'
                 try:
