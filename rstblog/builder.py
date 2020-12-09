@@ -36,15 +36,16 @@ logger = logging
 
 
 OUTPUT_FOLDER = '_build'
-builtin_programs = {
+
+PROGRAM_CLASS_FOR_NAME = {
     'rst':      RSTProgram,
     'html':     HTMLProgram,
     'copy':     CopyProgram,
     'md':       MarkdownProgram,
     'scss':     SCSSProgram,
 }
-builtin_templates = os.path.join(os.path.dirname(__file__), 'templates')
-url_parts_re = re.compile(r'\$(\w+|{[^}]+})')
+
+BUILTIN_TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 
 
 class Context(object):
@@ -62,7 +63,7 @@ class Context(object):
         if self.program_name is None:
             self.program_name = self.builder.guess_program(
                 config, source_filename)
-        self.program = self.builder.programs[self.program_name](self)
+        self.program = PROGRAM_CLASS_FOR_NAME[self.program_name](self)
         self.destination_filename = os.path.join(
             self.builder.prefix_path.lstrip('/'),
             self.program.get_desired_filename())
@@ -216,7 +217,6 @@ class Builder(object):
     def __init__(self, project_folder, config):
         self.project_folder = os.path.abspath(project_folder)
         self.config = config
-        self.programs = builtin_programs.copy()
         self.modules = []
         self.storage = {}
         self.url_map = Map()
@@ -231,7 +231,7 @@ class Builder(object):
                 self.default_template_path)
         self.locale = Locale(self.config.root_get('locale') or 'en')
         self.jinja_env = Environment(
-            loader=FileSystemLoader([template_path, builtin_templates]),
+            loader=FileSystemLoader([template_path, BUILTIN_TEMPLATES_DIR]),
             autoescape=self.config.root_get('template_autoescape', True),
             extensions=['jinja2.ext.autoescape', 'jinja2.ext.with_'],
         )
