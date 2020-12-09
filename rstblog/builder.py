@@ -119,12 +119,19 @@ class Context(object):
         return os.path.join(self.builder.project_folder, self.source_filename)
 
     @property
+    def full_source_metadata_filename(self):
+        base, _ = os.path.splitext(self.source_filename)
+        return os.path.join(self.builder.project_folder, base + ".yml")
+
+    @property
     def needs_build(self):
         if self.is_new:
             return True
-        src = self.full_source_filename
-        dst = self.full_destination_filename
-        return os.path.getmtime(dst) < os.path.getmtime(src)
+        dst_time = os.path.getmtime(self.full_destination_filename)
+        metadata = self.full_source_metadata_filename
+        if os.path.exists(metadata) and dst_time < os.path.getmtime(metadata):
+            return True
+        return dst_time < os.path.getmtime(self.full_source_filename)
 
     def get_default_template_context(self):
         return {
@@ -192,7 +199,7 @@ class BuildError(ValueError):
 
 
 class Builder(object):
-    default_ignores = ('.*', '_*', 'config.yml', 'Makefile', 'README', '*.conf', )
+    default_ignores = ('.*', '_*', '*.yml', 'Makefile', 'README', '*.conf', )
     default_programs = {
         '*.rst':    'rst',
         '*.html':   'html',

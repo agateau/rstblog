@@ -109,6 +109,17 @@ class TemplatedProgram(Program):
         with open(self.context.full_destination_filename, "w") as f:
             f.write(rv + '\n')
 
+    def load_metadata_file(self):
+        path = self.context.full_source_metadata_filename
+        if not os.path.exists(path):
+            return {}
+        with open(path) as f:
+            cfg = yaml.load(f)
+        if not isinstance(cfg, dict):
+            raise ValueError('expected dict config in file "%s", got: %.40r'
+                             % (path, cfg))
+        return cfg
+
     def load_header(self, f):
         headers = []
         while True:
@@ -155,8 +166,9 @@ class HTMLProgram(TemplatedProgram):
     default_template = 'rst_display.html'
 
     def prepare(self):
+        cfg = self.load_metadata_file()
         with open(self.context.full_source_filename) as f:
-            cfg = self.load_header(f)
+            cfg.update(self.load_header(f))
             self.context.html = self.load_body(f, cfg)
 
         if cfg:
@@ -224,8 +236,9 @@ class MarkdownProgram(TemplatedProgram):
             base_url = self.context.config.root_get('canonical_url')
             return fix_relative_url(base_url, self.context.slug, path)
 
+        cfg = self.load_metadata_file()
         with open(self.context.full_source_filename) as f:
-            cfg = self.load_header(f)
+            cfg.update(self.load_header(f))
             md = self.load_body(f, cfg)
             md = self.process_embedded_rst_directives(md)
             html = markdown.markdown(md, extensions=MARKDOWN_EXTENSIONS.keys(),
