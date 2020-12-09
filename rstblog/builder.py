@@ -104,18 +104,6 @@ class Context(object):
         base_url = self.config.get('canonical_url')
         return base_url + self.slug
 
-    def make_destination_folder(self):
-        folder = self.destination_folder
-        if not os.path.isdir(folder):
-            os.makedirs(folder)
-
-    def open_source_file(self, mode='r'):
-        return open(self.full_source_filename, mode)
-
-    def open_destination_file(self, mode='w'):
-        self.make_destination_folder()
-        return open(self.full_destination_filename, mode)
-
     @property
     def destination_folder(self):
         return os.path.dirname(self.full_destination_filename)

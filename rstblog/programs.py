@@ -71,7 +71,7 @@ class CopyProgram(Program):
     """A program that copies a file over unchanged"""
 
     def run(self):
-        self.context.make_destination_folder()
+        os.makedirs(self.context.destination_folder, exist_ok=True)
         shutil.copy(self.context.full_source_filename,
                     self.context.full_destination_filename)
 
@@ -82,7 +82,7 @@ class CopyProgram(Program):
 class SCSSProgram(Program):
     """A program that processes an SCSS file"""
     def run(self):
-        self.context.make_destination_folder()
+        os.makedirs(self.context.destination_folder, exist_ok=True)
         subprocess.check_call(['sassc', '--sourcemap', '-t', 'compact',
                                self.context.full_source_filename,
                                self.context.full_destination_filename])
@@ -104,7 +104,9 @@ class TemplatedProgram(Program):
             or self.default_template
         context = self.get_template_context()
         rv = self.context.render_template(template_name, context)
-        with self.context.open_destination_file() as f:
+
+        os.makedirs(self.context.destination_folder, exist_ok=True)
+        with open(self.context.full_destination_filename, "w") as f:
             f.write(rv + '\n')
 
     def load_header(self, f):
@@ -153,7 +155,7 @@ class HTMLProgram(TemplatedProgram):
     default_template = 'rst_display.html'
 
     def prepare(self):
-        with self.context.open_source_file() as f:
+        with open(self.context.full_source_filename) as f:
             cfg = self.load_header(f)
             self.context.html = self.load_body(f, cfg)
 
@@ -182,7 +184,7 @@ class RSTProgram(TemplatedProgram):
     default_template = 'rst_display.html'
 
     def prepare(self):
-        with self.context.open_source_file() as f:
+        with open(self.context.full_source_filename) as f:
             cfg = self.load_header(f)
             rst = self.load_body(f, cfg)
             rv = self.context.render_rst(rst)
@@ -222,7 +224,7 @@ class MarkdownProgram(TemplatedProgram):
             base_url = self.context.config.root_get('canonical_url')
             return fix_relative_url(base_url, self.context.slug, path)
 
-        with self.context.open_source_file() as f:
+        with open(self.context.full_source_filename) as f:
             cfg = self.load_header(f)
             md = self.load_body(f, cfg)
             md = self.process_embedded_rst_directives(md)
