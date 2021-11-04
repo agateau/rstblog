@@ -13,6 +13,8 @@ from rstblog.modules import directiveutils
 from docutils import nodes
 from docutils.parsers.rst import Directive, directives
 
+from pathlib import Path
+
 from jinja2 import Template
 
 import yaml
@@ -37,7 +39,8 @@ TEMPLATE = """
 
 class Gallery(Directive):
     option_spec = dict(thumbsize=directives.nonnegative_int,
-                       square=directives.flag)
+                       square=directives.flag,
+                       images=directives.path)
 
     has_content = True
     required_arguments = 0
@@ -52,7 +55,15 @@ class Gallery(Directive):
         size = self.options.get('thumbsize', DEFAULT_THUMB_SIZE)
         square = 'square' in self.options
 
-        images = yaml.load('\n'.join(self.content))
+        if 'images' in self.options:
+            image_name = self.options.get('images')
+            image_path = Path(directiveutils.get_document_dirname(self), image_name)
+            with open(image_path) as f:
+                yaml_content = f.read()
+        else:
+            yaml_content = '\n'.join(self.content)
+        images = yaml.load(yaml_content)
+
         base_path = directiveutils.get_document_dirname(self)
         for image in images:
             thumbnail = utils.generate_thumbnail(base_path,
