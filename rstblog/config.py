@@ -37,7 +37,7 @@ class Config(object):
         rv = {}
         prefix = key + '.'
         for layer in self.stack:
-            for key, value in layer.iteritems():
+            for key, value in layer.items():
                 if key.startswith(prefix):
                     rv[key] = value
         return rv
@@ -69,7 +69,7 @@ class Config(object):
         rv = Config()
         rv.stack = self.stack + [layer]
         def _walk(d, prefix):
-            for key, value in d.iteritems():
+            for key, value in d.items():
                 if isinstance(value, dict):
                     _walk(value, prefix + key + '.')
                 else:

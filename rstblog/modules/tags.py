@@ -8,31 +8,24 @@
     :copyright: (c) 2010 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
 """
-from math import log
-from urlparse import urljoin
-
 from jinja2 import contextfunction
-
-from werkzeug.contrib.atom import AtomFeed
 
 from rstblog.signals import after_file_published, \
      before_build_finished
+from rstblog.utils import generate_feed_str
 
 
 class Tag(object):
 
     def __init__(self, name, count):
+        self.group = name[0].lower()
         self.name = name
         self.count = count
-        self.size = 100 + log(count or 1) * 20
 
 
 @contextfunction
-def get_tags(context, limit=50):
+def get_tags(context):
     tags = get_tag_summary(context['builder'])
-    if limit:
-        tags.sort(key=lambda x: -x.count)
-        tags = tags[:limit]
     tags.sort(key=lambda x: x.name.lower())
     return tags
 
@@ -41,7 +34,7 @@ def get_tag_summary(builder):
     storage = builder.get_storage('tags')
     by_tag = storage.get('by_tag', {})
     result = []
-    for tag, tagged in by_tag.iteritems():
+    for tag, tagged in by_tag.items():
         result.append(Tag(tag, len(tagged)))
     result.sort(key=lambda x: x.count)
     return result
@@ -66,43 +59,33 @@ def remember_tags(context):
     context.tags = frozenset(tags)
 
 
-def write_tagcloud_page(builder):
-    with builder.open_link_file('tagcloud') as f:
-        rv = builder.render_template('tagcloud.html')
-        f.write(rv.encode('utf-8') + '\n')
+def write_tags_page(builder):
+    with builder.open_link_file('tags') as f:
+        rv = builder.render_template('tags.html')
+        f.write(rv + '\n')
 
 
 def write_tag_feed(builder, tag):
-    blog_author = builder.config.root_get('author')
-    url = builder.config.root_get('canonical_url') or 'http://localhost/'
-    name = builder.config.get('feed.name') or u'Recent Blog Posts'
-    subtitle = builder.config.get('feed.subtitle') or u'Recent blog posts'
-    feed = AtomFeed(name,
-                    subtitle=subtitle,
-                    feed_url=urljoin(url, builder.link_to('blog_feed')),
-                    url=url)
-    for entry in get_tagged_entries(builder, tag)[:10]:
-        feed.add(entry.title, unicode(entry.render_contents()),
-                 content_type='html', author=blog_author,
-                 url=urljoin(url, entry.slug),
-                 updated=entry.pub_date)
+    title = 'Posts tagged {}'.format(tag.name)
+    entries = get_tagged_entries(builder, tag)
+    feed_str = generate_feed_str(builder, title, entries)
     with builder.open_link_file('tagfeed', tag=tag.name) as f:
-        f.write(feed.to_string().encode('utf-8') + '\n')
+        f.write(feed_str)
 
 
 def write_tag_page(builder, tag):
     entries = get_tagged_entries(builder, tag)
-    entries.sort(key=lambda x: (x.title or '').lower())
+    entries.sort(key=lambda x: x.pub_date, reverse=True)
     with builder.open_link_file('tag', tag=tag.name) as f:
         rv = builder.render_template('tag.html', {
             'tag':      tag,
             'entries':  entries
         })
-        f.write(rv.encode('utf-8') + '\n')
+        f.write(rv + '\n')
 
 
 def write_tag_files(builder):
-    write_tagcloud_page(builder)
+    write_tags_page(builder)
     for tag in get_tag_summary(builder):
         write_tag_page(builder, tag)
         write_tag_feed(builder, tag)
@@ -115,6 +98,6 @@ def setup(builder):
                          config_default='/tags/<tag>/')
     builder.register_url('tagfeed', config_key='modules.tags.tag_feed_url',
                          config_default='/tags/<tag>/feed.atom')
-    builder.register_url('tagcloud', config_key='modules.tags.cloud_url',
+    builder.register_url('tags', config_key='modules.tags.tags_url',
                          config_default='/tags/')
     builder.jinja_env.globals['get_tags'] = get_tags

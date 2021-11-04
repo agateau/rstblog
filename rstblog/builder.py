@@ -8,11 +8,12 @@
     :copyright: (c) 2010 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
 """
+import logging
 import re
 import os
 import posixpath
 from fnmatch import fnmatch
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from docutils.core import publish_parts
 
@@ -28,16 +29,23 @@ from rstblog.signals import before_file_processed, \
      before_file_built, after_file_prepared, \
      after_file_published
 from rstblog.modules import find_module
-from rstblog.programs import RSTProgram, CopyProgram
+from rstblog.programs import RSTProgram, HTMLProgram, CopyProgram, \
+    MarkdownProgram, SCSSProgram
+
+logger = logging
 
 
 OUTPUT_FOLDER = '_build'
-builtin_programs = {
+
+PROGRAM_CLASS_FOR_NAME = {
     'rst':      RSTProgram,
-    'copy':     CopyProgram
+    'html':     HTMLProgram,
+    'copy':     CopyProgram,
+    'md':       MarkdownProgram,
+    'scss':     SCSSProgram,
 }
-builtin_templates = os.path.join(os.path.dirname(__file__), 'templates')
-url_parts_re = re.compile(r'\$(\w+|{[^}]+})')
+
+BUILTIN_TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 
 
 class Context(object):
@@ -55,12 +63,16 @@ class Context(object):
         if self.program_name is None:
             self.program_name = self.builder.guess_program(
                 config, source_filename)
-        self.program = self.builder.programs[self.program_name](self)
+        self.program = PROGRAM_CLASS_FOR_NAME[self.program_name](self)
         self.destination_filename = os.path.join(
             self.builder.prefix_path.lstrip('/'),
             self.program.get_desired_filename())
         if prepare:
-            self.program.prepare()
+            try:
+                self.program.prepare()
+            except Exception:
+                logger.error("Failed to prepare %s", self.destination_filename)
+                raise
             after_file_prepared.send(self)
             if self.public:
                 after_file_published.send(self)
@@ -68,6 +80,12 @@ class Context(object):
     @property
     def is_new(self):
         return not os.path.exists(self.full_destination_filename)
+
+    @property
+    def is_text(self):
+        ext = os.path.splitext(self.source_filename)[1]
+        lst = self.config.get("text_extensions", (".rst", ".html", ".md"))
+        return ext in lst
 
     @property
     def public(self):
@@ -78,20 +96,13 @@ class Context(object):
         directory, filename = os.path.split(self.source_filename)
         basename, ext = os.path.splitext(filename)
         if basename == 'index':
-            return posixpath.join(directory, basename).rstrip('/').replace('\\', '/')
+            return directory.rstrip('/').replace('\\', '/')
         return posixpath.join(directory, basename).replace('\\', '/')
 
-    def make_destination_folder(self):
-        folder = self.destination_folder
-        if not os.path.isdir(folder):
-            os.makedirs(folder)
-
-    def open_source_file(self, mode='r'):
-        return open(self.full_source_filename, mode)
-
-    def open_destination_file(self, mode='w'):
-        self.make_destination_folder()
-        return open(self.full_destination_filename, mode)
+    @property
+    def url(self):
+        base_url = self.config.get('canonical_url')
+        return base_url + self.slug
 
     @property
     def destination_folder(self):
@@ -108,12 +119,19 @@ class Context(object):
         return os.path.join(self.builder.project_folder, self.source_filename)
 
     @property
+    def full_source_metadata_filename(self):
+        base, _ = os.path.splitext(self.source_filename)
+        return os.path.join(self.builder.project_folder, base + ".yml")
+
+    @property
     def needs_build(self):
         if self.is_new:
             return True
-        src = self.full_source_filename
-        dst = self.full_destination_filename
-        return os.path.getmtime(dst) < os.path.getmtime(src)
+        dst_time = os.path.getmtime(self.full_destination_filename)
+        metadata = self.full_source_metadata_filename
+        if os.path.exists(metadata) and dst_time < os.path.getmtime(metadata):
+            return True
+        return dst_time < os.path.getmtime(self.full_source_filename)
 
     def get_default_template_context(self):
         return {
@@ -121,7 +139,8 @@ class Context(object):
             'program_name':     self.program_name,
             'links':            self.links,
             'ctx':              self,
-            'config':           self.config
+            'config':           self.config,
+            'url':              self.url,
         }
 
     def render_template(self, template_name, context=None):
@@ -149,8 +168,11 @@ class Context(object):
 
     def render_summary(self):
         if not self.summary:
-            return u''
-        return self.render_rst(self.summary)['fragment']
+            return ''
+        if isinstance(self.summary, Markup):
+            return self.summary
+        else:
+            return self.render_rst(self.summary)['fragment']
 
     def add_stylesheet(self, href, type=None, media=None):
         if type is None:
@@ -177,9 +199,12 @@ class BuildError(ValueError):
 
 
 class Builder(object):
-    default_ignores = ('.*', '_*', 'config.yml', 'Makefile', 'README', '*.conf', )
+    default_ignores = ('.*', '_*', '*.yml', 'Makefile', 'README', '*.conf', )
     default_programs = {
-        '*.rst':    'rst'
+        '*.rst':    'rst',
+        '*.html':   'html',
+        '*.md':     'md',
+        '*.scss':   'scss',
     }
     default_template_path = '_templates'
     default_static_folder = 'static'
@@ -187,7 +212,6 @@ class Builder(object):
     def __init__(self, project_folder, config):
         self.project_folder = os.path.abspath(project_folder)
         self.config = config
-        self.programs = builtin_programs.copy()
         self.modules = []
         self.storage = {}
         self.url_map = Map()
@@ -202,7 +226,7 @@ class Builder(object):
                 self.default_template_path)
         self.locale = Locale(self.config.root_get('locale') or 'en')
         self.jinja_env = Environment(
-            loader=FileSystemLoader([template_path, builtin_templates]),
+            loader=FileSystemLoader([template_path, BUILTIN_TEMPLATES_DIR]),
             autoescape=self.config.root_get('template_autoescape', True),
             extensions=['jinja2.ext.autoescape', 'jinja2.ext.with_'],
         )
@@ -231,7 +255,7 @@ class Builder(object):
         return self.url_adapter.build(_key, values)
 
     def get_link_filename(self, _key, **values):
-        link = url_unquote(self.link_to(_key, **values).lstrip('/')).encode('utf-8')
+        link = url_unquote(self.link_to(_key, **values).lstrip('/'))
         if not link or link.endswith('/'):
             link += 'index.html'
         return os.path.join(self.default_output_folder, link)
@@ -282,7 +306,7 @@ class Builder(object):
 
     def guess_program(self, config, filename):
         mapping = config.list_entries('programs') or self.default_programs
-        for pattern, program_name in mapping.iteritems():
+        for pattern, program_name in mapping.items():
             if fnmatch(filename, pattern):
                 return program_name
         return 'copy'
@@ -306,21 +330,37 @@ class Builder(object):
         return dates.format_date(date, format, locale=self.locale)
 
     def iter_contexts(self, prepare=True):
-        last_config = self.config
         cutoff = len(self.project_folder) + 1
-        for dirpath, dirnames, filenames in os.walk(self.project_folder):
-            local_config = last_config
-            local_config_filename = os.path.join(dirpath, 'config.yml')
-            if os.path.isfile(local_config_filename):
-                with open(local_config_filename) as f:
-                    local_config = last_config.add_from_file(f)
+
+        def _walk(local_config, dirpath):
+            dirnames = []
+            filenames = []
+            for f in os.listdir(dirpath):
+                if os.path.isdir(os.path.join(dirpath, f)):
+                    dirnames.append(f)
+                else:
+                    filenames.append(f)
 
             dirnames[:] = self.filter_files(dirnames, local_config)
             filenames = self.filter_files(filenames, local_config)
 
+            for dirname in dirnames:
+                sub_config_filename = os.path.join(dirpath, dirname, 'config.yml')
+                if os.path.isfile(sub_config_filename):
+                    with open(sub_config_filename) as f:
+                        sub_config = local_config.add_from_file(f)
+                else:
+                    sub_config = local_config
+
+                for ctx in _walk(sub_config, os.path.join(dirpath, dirname)):
+                    yield ctx
+
             for filename in filenames:
                 yield Context(self, local_config, os.path.join(
                     dirpath[cutoff:], filename), prepare)
+
+        for ctx in _walk(self.config, self.project_folder):
+            yield ctx
 
     def anything_needs_build(self):
         for context in self.iter_contexts(prepare=False):
@@ -330,19 +370,23 @@ class Builder(object):
 
     def run(self):
         self.storage.clear()
-        contexts = list(self.iter_contexts())
 
-        for context in contexts:
+        for context in self.iter_contexts():
             if context.needs_build:
                 key = context.is_new and 'A' or 'U'
-                context.run()
-                print key, context.source_filename
+                try:
+                    context.run()
+                except Exception:
+                    logger.error("Failed to process %s",
+                                 context.source_filename)
+                    raise
+                print(key, context.source_filename)
 
         before_build_finished.send(self)
 
-    def debug_serve(self, host='127.0.0.1', port=5000):
+    def debug_serve(self, host='0.0.0.0', port=5000):
         from rstblog.server import Server
-        print 'Serving on http://%s:%d/' % (host, port)
+        print('Serving on http://%s:%d/' % (host, port))
         try:
             Server(host, port, self).serve_forever()
         except KeyboardInterrupt:

@@ -15,20 +15,43 @@
     :copyright: (c) 2012 by Martin Andrews.
     :license: BSD, see LICENSE for more details.
 """
+import types
+import urllib.parse
+
 import jinja2
+
+def disqus_vars_from_dict(dct):
+    lst = []
+    for key, value in sorted(list(dct.items())):
+        if isinstance(value, int):
+            value = str(value)
+        elif isinstance(value, str):
+            value = '"%s"' % jinja2.Markup(value).striptags().replace('"', r'\"')
+        else:
+            raise Exception('Unsupported type for disqus variable %s=%r' % (key, value))
+        lst.append('var disqus_%s = %s;' % (key, value))
+    return '\n'.join(lst)
 
 @jinja2.contextfunction
 def get_disqus(context):
-    var_shortname=context['builder'].config.root_get('modules.disqus.shortname', 'YOUR-DISQUS-SHORTNAME')
+    config = context['builder'].config
+    vars = dict()
 
-    var_developer=''
-    if context['builder'].config.root_get('modules.disqus.developer', False):
-        var_developer='var disqus_developer = 1;'
+    shortname = config.root_get('modules.disqus.shortname')
+    if not shortname:
+        raise Exception('You must set the disqus shortname in "modules.disqus.shortname"')
+    vars['shortname'] = shortname
+
+    if config.root_get('modules.disqus.developer', False):
+        vars['developer'] = 1
+
+
+    vars['url'] = urllib.parse.urljoin(config.root_get('canonical_url'), context['ctx'].slug) + '/'
+    vars['title'] = context['ctx'].title
     
     disqus_txt="""
 <div id="disqus_thread"></div>
 <script type="text/javascript">
-    var disqus_shortname = '%s'; // required: replace example with your forum shortname
     %s
     
     /* * * DON'T EDIT BELOW THIS LINE * * */
@@ -40,12 +63,12 @@ def get_disqus(context):
 </script>
 <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
-""" % ( var_shortname, var_developer, )
+""" % disqus_vars_from_dict(vars)
 
     if not context['config'].get('disqus', True):
         disqus_txt='' # "<h1>DISQUS DEFEATED</h1>"
         
-    return jinja2.Markup(disqus_txt.encode('utf-8'))
+    return jinja2.Markup(disqus_txt)
 
 
 def setup(builder):

@@ -8,7 +8,7 @@
     :copyright: (c) 2010 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
 """
-from __future__ import absolute_import
+
 from rstblog.signals import before_file_processed, \
      before_build_finished
 
@@ -35,7 +35,7 @@ class CodeBlock(Directive):
             lexer = get_lexer_by_name(self.arguments[0])
         except ValueError:
             lexer = TextLexer()
-        code = u'\n'.join(self.content)
+        code = '\n'.join(self.content)
         formatted = highlight(code, lexer, html_formatter)
         return [nodes.raw('', formatted, format='html')]
 

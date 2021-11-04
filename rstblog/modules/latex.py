@@ -140,14 +140,14 @@ class MathDirective(Directive):
             latex = self.arguments[0] + '\n\n' + latex
         url, _ = render_math(self.state.document.settings.rstblog_context,
                              latex)
-        return [nodes.raw('', u'<blockquote class="math">%s</blockquote>'
+        return [nodes.raw('', '<blockquote class="math">%s</blockquote>'
                           % make_imgtag(url, None, latex), format='html')]
 
 
 def math_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     latex = utils.unescape(text, restore_backslashes=True)
     url, depth = render_math(inliner.document.settings.rstblog_context, latex)
-    return [nodes.raw('', u'<span class="math">%s</span>' %
+    return [nodes.raw('', '<span class="math">%s</span>' %
                       make_imgtag(url, depth, latex), format='html')], []
 
 
