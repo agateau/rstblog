@@ -23,11 +23,11 @@ DEFAULT_THUMB_SIZE = 200
 TEMPLATE = """
 <ul class="thumbnails center" style="clear: both">
 {% for item in images %}
-    <li><a class="reference external image-reference" href="{{ item.full }}" title="{{ item.alt }}"
+    <li><a class="reference external image-reference" href="{{ item.full }}" title="{{ item.alt|escape }}"
         ><img
             width="{{ item.thumbnail_width }}"
             height="{{ item.thumbnail_height }}"
-            alt="{{ item.alt }}"
+            alt="{{ item.alt|escape }}"
             src="{{ item.thumbnail }}"
         ></a></li>
 {% endfor %}
