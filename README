@@ -1,7 +1,0 @@
-My NIH static blog replacement for my old dynamic blog.
-
-Totally nothing new but does the trick for me.
-
-# Article summary
-
-Use `<!-- break -->` inside an article to define its summary.
