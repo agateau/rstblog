@@ -197,12 +197,12 @@ BREAK_COMMENT = '\n<!-- break -->\n'
 
 def get_html_summary(content):
     """If content contains a BREAK_COMMENT returns the text before it,
-    otherwise return None"""
+    otherwise all the content"""
     lst = content.split(BREAK_COMMENT, 1)
     if len(lst) == 2:
         return lst[0].strip()
     else:
-        return None
+        return content
 
 
 OgProperties = namedtuple("OgProperties", ("description", "image", "image_alt"))
