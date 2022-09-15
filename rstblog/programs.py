@@ -114,7 +114,7 @@ class TemplatedProgram(Program):
         if not os.path.exists(path):
             return {}
         with open(path) as f:
-            cfg = yaml.load(f)
+            cfg = yaml.load(f, yaml.SafeLoader)
         if not isinstance(cfg, dict):
             raise ValueError('expected dict config in file "%s", got: %.40r'
                              % (path, cfg))
@@ -130,7 +130,7 @@ class TemplatedProgram(Program):
             if not line or line == HEADER_LIMIT:
                 break
             headers.append(line)
-        cfg = yaml.load(StringIO('\n'.join(headers)))
+        cfg = yaml.load(StringIO('\n'.join(headers)), yaml.SafeLoader)
         if cfg and not isinstance(cfg, dict):
             raise ValueError('expected dict config in file "%s", got: %.40r'
                              % (self.context.source_filename, cfg))

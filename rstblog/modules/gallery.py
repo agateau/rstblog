@@ -62,7 +62,7 @@ class Gallery(Directive):
                 yaml_content = f.read()
         else:
             yaml_content = '\n'.join(self.content)
-        images = yaml.load(yaml_content)
+        images = yaml.load(yaml_content, yaml.SafeLoader)
 
         base_path = directiveutils.get_document_dirname(self)
         for image in images:
