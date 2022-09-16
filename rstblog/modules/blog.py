@@ -13,7 +13,7 @@
 from datetime import datetime
 from urllib.parse import urljoin
 
-from jinja2 import contextfunction
+from jinja2 import pass_context
 
 from werkzeug.routing import Rule, Map, NotFound
 
@@ -74,7 +74,7 @@ def get_archive_summary(builder):
     return [YearArchive(builder, year, entries) for year, entries in years]
 
 
-@contextfunction
+@pass_context
 def get_recent_blog_entries(context, limit=10):
     return get_all_entries(context['builder'])[:limit]
 

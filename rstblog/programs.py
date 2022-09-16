@@ -25,7 +25,7 @@ from rstblog.utils import fix_relative_url, fix_relative_urls, \
 import markdown
 import yaml
 
-from jinja2 import Markup
+from markupsafe import Markup, escape
 
 MARKDOWN_EXTENSIONS = {
     "fenced_code": {},

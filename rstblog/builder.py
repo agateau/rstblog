@@ -17,12 +17,14 @@ from urllib.parse import urlparse
 
 from docutils.core import publish_parts
 
-from jinja2 import Environment, FileSystemLoader, Markup
+from jinja2 import Environment, FileSystemLoader
 
 from babel import Locale, dates
 
 from werkzeug.routing import Map, Rule
 from werkzeug import url_unquote
+
+from markupsafe import Markup, escape
 
 from rstblog.signals import before_file_processed, \
      before_template_rendered, before_build_finished, \
@@ -227,8 +229,7 @@ class Builder(object):
         self.locale = Locale(self.config.root_get('locale') or 'en')
         self.jinja_env = Environment(
             loader=FileSystemLoader([template_path, BUILTIN_TEMPLATES_DIR]),
-            autoescape=self.config.root_get('template_autoescape', True),
-            extensions=['jinja2.ext.autoescape', 'jinja2.ext.with_'],
+            autoescape=self.config.root_get('template_autoescape', True)
         )
         self.jinja_env.globals.update(
             link_to=self.link_to,

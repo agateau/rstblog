@@ -18,7 +18,7 @@ from collections import namedtuple
 import lxml.etree
 import lxml.html
 
-from jinja2 import Markup
+from markupsafe import Markup
 
 from feedgen.feed import FeedGenerator
 

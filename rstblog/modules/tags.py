@@ -8,7 +8,7 @@
     :copyright: (c) 2010 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
 """
-from jinja2 import contextfunction
+from jinja2 import pass_context
 
 from rstblog.signals import after_file_published, \
      before_build_finished
@@ -23,7 +23,7 @@ class Tag(object):
         self.count = count
 
 
-@contextfunction
+@pass_context
 def get_tags(context):
     tags = get_tag_summary(context['builder'])
     tags.sort(key=lambda x: x.name.lower())
