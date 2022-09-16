@@ -15,6 +15,7 @@ import subprocess
 
 from datetime import datetime
 from io import StringIO
+from typing import Tuple, Dict, Any
 from weakref import ref
 
 from jinja2 import Template
@@ -97,6 +98,11 @@ class TemplatedProgram(Program):
     def get_template_context(self):
         return {
             'url': self.context.url,
+            'rst': {
+                'title': Markup(self.context.title).striptags(),
+                'html_title': Markup('<h1>' + self.context.title + '</h1>'),
+                'fragment': Markup(self.context.html),
+            }
         }
 
     def run(self):
@@ -109,7 +115,22 @@ class TemplatedProgram(Program):
         with open(self.context.full_destination_filename, "w") as f:
             f.write(rv + '\n')
 
-    def load_metadata_file(self):
+    def render_contents(self):
+        return self.context.html
+
+    def load_source(self) -> Tuple[Dict[str, Any], str]:
+        """
+        Load source page, process header, returns a tuple of (cfg, source body)
+        """
+        cfg = self._load_metadata_file()
+        with open(self.context.full_source_filename) as f:
+            cfg.update(self._load_header(f))
+            body = self._load_body(f, cfg)
+        self._process_header(cfg)
+        return cfg, body
+
+    def _load_metadata_file(self):
+        """Load a sidecar yaml based metadata file, if there is one, returns a dict"""
         path = self.context.full_source_metadata_filename
         if not os.path.exists(path):
             return {}
@@ -120,7 +141,7 @@ class TemplatedProgram(Program):
                              % (path, cfg))
         return cfg
 
-    def load_header(self, f):
+    def _load_header(self, f):
         headers = []
         while True:
             line = f.readline().rstrip()
@@ -136,7 +157,7 @@ class TemplatedProgram(Program):
                              % (self.context.source_filename, cfg))
         return cfg
 
-    def process_header(self, cfg):
+    def _process_header(self, cfg):
         self.context.config = self.context.config.add_from_dict(cfg)
         self.context.destination_filename = cfg.get(
             'destination_filename',
@@ -151,8 +172,9 @@ class TemplatedProgram(Program):
             self.context.pub_date = pub_date_override
 
         self.context.summary = cfg.get('summary')
+        self.context.title = cfg.get('title')
 
-    def load_body(self, f, cfg):
+    def _load_body(self, f, cfg):
         """Load body of the page, process Jinja directives if necessary"""
         body = f.read()
         if cfg.get("jinja"):
@@ -166,29 +188,7 @@ class HTMLProgram(TemplatedProgram):
     default_template = 'rst_display.html'
 
     def prepare(self):
-        cfg = self.load_metadata_file()
-        with open(self.context.full_source_filename) as f:
-            cfg.update(self.load_header(f))
-            self.context.html = self.load_body(f, cfg)
-
-        if cfg:
-            self.process_header(cfg)
-            title = cfg.get('title')
-
-        if title is not None:
-            self.context.title = title
-
-    def get_template_context(self):
-        ctx = TemplatedProgram.get_template_context(self)
-        ctx['rst'] = {
-            'title': Markup(self.context.title).striptags(),
-            'html_title': Markup('<h1>' + self.context.title + '</h1>'),
-            'fragment': Markup(self.context.html),
-        }
-        return ctx
-
-    def render_contents(self):
-        return self.context.html
+        cfg, self.context.html = self.load_source()
 
 
 class RSTProgram(TemplatedProgram):
@@ -196,33 +196,12 @@ class RSTProgram(TemplatedProgram):
     default_template = 'rst_display.html'
 
     def prepare(self):
-        with open(self.context.full_source_filename) as f:
-            cfg = self.load_header(f)
-            rst = self.load_body(f, cfg)
-            rv = self.context.render_rst(rst)
-            self.context.html = rv['fragment']
-            title = rv['title']
-
-        if cfg:
-            self.process_header(cfg)
-            title_override = cfg.get('title')
-            if title_override is not None:
-                title = title_override
-
-        if title is not None:
-            self.context.title = title
+        cfg, rst = self.load_source()
+        rv = self.context.render_rst(rst)
+        self.context.html = rv['fragment']
 
     def render_contents(self):
         return self.context.html
-
-    def get_template_context(self):
-        ctx = TemplatedProgram.get_template_context(self)
-        ctx['rst'] = {
-            'title': Markup(self.context.title).striptags(),
-            'html_title': Markup('<h1>' + self.context.title + '</h1>'),
-            'fragment': Markup(self.context.html),
-        }
-        return ctx
 
 
 class MarkdownProgram(TemplatedProgram):
@@ -236,42 +215,25 @@ class MarkdownProgram(TemplatedProgram):
             base_url = self.context.config.root_get('canonical_url')
             return fix_relative_url(base_url, self.context.slug, path)
 
-        cfg = self.load_metadata_file()
-        with open(self.context.full_source_filename) as f:
-            cfg.update(self.load_header(f))
-            md = self.load_body(f, cfg)
-            md = self.process_embedded_rst_directives(md)
-            html = markdown.markdown(md, extensions=MARKDOWN_EXTENSIONS.keys(),
-                                     extension_configs=MARKDOWN_EXTENSIONS)
+        cfg, md = self.load_source()
+        md = self.process_embedded_rst_directives(md)
+        html = markdown.markdown(md, extensions=MARKDOWN_EXTENSIONS.keys(),
+                                 extension_configs=MARKDOWN_EXTENSIONS)
 
-            html = fix_relative_urls('/', self.context.slug, html)
-            self.context.html = html
+        html = fix_relative_urls('/', self.context.slug, html)
+        self.context.html = html
 
-            self.process_header(cfg)
-            self.context.title = cfg.get('title')
-            if self.context.summary is None:
-                summary = get_html_summary(self.context.html)
-                if summary:
-                    self.context.summary = Markup(summary)
-            og_properties = get_og_properties(html)
-            self.context.description = cfg.get('description', og_properties.description)
-            self.context.image = url_for_path(cfg.get('image'))
-            self.context.image_alt = cfg.get('image_alt')
-            if self.context.image is None and og_properties.image is not None:
-                self.context.image = url_for_path(og_properties.image)
-                self.context.image_alt = og_properties.image_alt
-
-    def render_contents(self):
-        return self.context.html
-
-    def get_template_context(self):
-        ctx = TemplatedProgram.get_template_context(self)
-        ctx['rst'] = {
-            'title': Markup(self.context.title).striptags(),
-            'html_title': Markup('<h1>' + self.context.title + '</h1>'),
-            'fragment': Markup(self.context.html),
-        }
-        return ctx
+        if self.context.summary is None:
+            summary = get_html_summary(self.context.html)
+            if summary:
+                self.context.summary = Markup(summary)
+        og_properties = get_og_properties(html)
+        self.context.description = cfg.get('description', og_properties.description)
+        self.context.image = url_for_path(cfg.get('image'))
+        self.context.image_alt = cfg.get('image_alt')
+        if self.context.image is None and og_properties.image is not None:
+            self.context.image = url_for_path(og_properties.image)
+            self.context.image_alt = og_properties.image_alt
 
     def process_embedded_rst_directives(self, src):
         lst = []
