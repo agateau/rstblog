@@ -8,11 +8,11 @@
     :copyright: (c) 2012 by Aurélien Gâteau.
     :license: BSD, see LICENSE for more details.
 """
-from rstblog import utils
-from rstblog.modules import directiveutils
-
 from docutils.parsers.rst import directives
 from docutils.parsers.rst.directives.images import Image
+
+from rstblog import utils
+from rstblog.modules import directiveutils
 
 DEFAULT_THUMB_SIZE = 300
 
@@ -25,8 +25,7 @@ class ThumbImg(Image):
 
         big_filename = directives.uri(self.arguments[0])
         document_dirname = directiveutils.get_document_dirname(self)
-        thumbnail = utils.generate_thumbnail(document_dirname,
-                                             big_filename, size)
+        thumbnail = utils.generate_thumbnail(document_dirname, big_filename, size)
 
         self.arguments[0] = thumbnail.relpath
         self.options["target"] = big_filename
@@ -34,4 +33,4 @@ class ThumbImg(Image):
 
 
 def setup(builder):
-    directives.register_directive('thumbimg', ThumbImg)
+    directives.register_directive("thumbimg", ThumbImg)

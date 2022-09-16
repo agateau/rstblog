@@ -10,21 +10,16 @@
 """
 import os
 import re
-
-from math import ceil
-from urllib.parse import urlsplit, urljoin
 from collections import namedtuple
+from math import ceil
+from urllib.parse import urljoin, urlsplit
 
 import lxml.etree
 import lxml.html
-
-from markupsafe import Markup
-
-from feedgen.feed import FeedGenerator
-
 import PIL.Image
-
 from bs4 import BeautifulSoup
+from feedgen.feed import FeedGenerator
+from markupsafe import Markup
 
 
 class Pagination(object):
@@ -46,8 +41,9 @@ class Pagination(object):
         return int(ceil(self.total / float(self.per_page)))
 
     def get_prev(self):
-        return Pagination(self.builder, self.entries, self.page - 1,
-                          self.per_page, self.url_key)
+        return Pagination(
+            self.builder, self.entries, self.page - 1, self.per_page, self.url_key
+        )
 
     @property
     def prev_num(self):
@@ -60,8 +56,9 @@ class Pagination(object):
         return self.page > 1
 
     def get_next(self):
-        return Pagination(self.builder, self.entries, self.page + 1,
-                          self.per_page, self.url_key)
+        return Pagination(
+            self.builder, self.entries, self.page + 1, self.per_page, self.url_key
+        )
 
     @property
     def has_next(self):
@@ -74,30 +71,30 @@ class Pagination(object):
         return self.page + 1
 
     def get_slice(self):
-        return self.entries[(self.page - 1) * self.per_page:
-                            self.page * self.per_page]
+        return self.entries[(self.page - 1) * self.per_page : self.page * self.per_page]
 
-    def iter_pages(self, left_edge=2, left_current=2,
-                   right_current=5, right_edge=2):
+    def iter_pages(self, left_edge=2, left_current=2, right_current=5, right_edge=2):
         """Iterates over the page numbers in the pagination.  The four
         parameters control the thresholds how many numbers should be produced
         from the sides.  Skipped page numbers are represented as `None`.
         """
         last = 0
         for num in range(1, self.pages + 1):
-            if num <= left_edge or \
-               (num > self.page - left_current - 1 and
-                num < self.page + right_current) or \
-               num > self.pages - right_edge:
+            if (
+                num <= left_edge
+                or (
+                    num > self.page - left_current - 1
+                    and num < self.page + right_current
+                )
+                or num > self.pages - right_edge
+            ):
                 if last + 1 != num:
                     yield None
                 yield num
                 last = num
 
     def __str__(self):
-        return self.builder.render_template('_pagination.html', {
-            'pagination':   self
-        })
+        return self.builder.render_template("_pagination.html", {"pagination": self})
 
     def __html__(self):
         return Markup(str(self))
@@ -120,7 +117,7 @@ def fix_relative_urls(base_url, slug, content):
             value = element.get(attribute)
             if not value:
                 continue
-            if value == '#':
+            if value == "#":
                 continue
             url = fix_relative_url(base_url, slug, value)
             element.set(attribute, url)
@@ -134,7 +131,7 @@ def fix_relative_urls(base_url, slug, content):
     process_elements(root, "video", "poster")
     process_elements(root, "audio", "src")
     process_elements(root, "source", "src")
-    html = lxml.etree.tostring(root).decode('utf-8')
+    html = lxml.etree.tostring(root).decode("utf-8")
 
     # Remove enclosing <div>, if any. It might not be there if the content is
     # only one paragraph.
@@ -165,25 +162,30 @@ def generate_thumbnail(base_path, image_relpath, size, square=False):
     Returns a Thumbnail
     """
     dirname, basename = os.path.split(image_relpath)
-    thumbnail_relpath = os.path.join(dirname, 'thumb_' + basename)
+    thumbnail_relpath = os.path.join(dirname, "thumb_" + basename)
 
     thumbnail_abspath = os.path.join(base_path, thumbnail_relpath)
     image_abspath = os.path.join(base_path, image_relpath)
 
     if need_update(thumbnail_abspath, image_abspath):
-        print('  Generating thumbnail for {}'.format(image_relpath))
+        print("  Generating thumbnail for {}".format(image_relpath))
         big_img = PIL.Image.open(image_abspath)
         if square:
             ratio = min(big_img.size) / float(size)
-            thumb_size = [int(x/ratio) for x in big_img.size]
+            thumb_size = [int(x / ratio) for x in big_img.size]
             thumb_img = big_img.resize(thumb_size, PIL.Image.BILINEAR)
             padding = [(x - size) / 2 for x in thumb_img.size]
-            thumb_img = thumb_img.crop((padding[0], padding[1],
-                                       thumb_img.width - padding[0],
-                                       thumb_img.height - padding[1]))
+            thumb_img = thumb_img.crop(
+                (
+                    padding[0],
+                    padding[1],
+                    thumb_img.width - padding[0],
+                    thumb_img.height - padding[1],
+                )
+            )
         else:
             ratio = max(big_img.size) / float(size)
-            thumb_size = [int(x/ratio) for x in big_img.size]
+            thumb_size = [int(x / ratio) for x in big_img.size]
             thumb_img = big_img.resize(thumb_size, PIL.Image.BILINEAR)
         thumb_img.save(thumbnail_abspath)
     else:
@@ -192,7 +194,7 @@ def generate_thumbnail(base_path, image_relpath, size, square=False):
     return Thumbnail(thumbnail_relpath, *thumb_img.size)
 
 
-BREAK_COMMENT = '\n<!-- break -->\n'
+BREAK_COMMENT = "\n<!-- break -->\n"
 
 
 def get_html_summary(content):
@@ -232,19 +234,19 @@ def get_og_properties(html_content):
 
 
 def generate_feed_str(builder, title, entries, subtitle=None):
-    blog_author = builder.config.root_get('author')
-    url = builder.config.root_get('canonical_url') or 'http://localhost/'
-    feed_url = urljoin(url, builder.link_to('blog_feed'))
-    subtitle = builder.config.get('feed.subtitle') or 'Recent blog posts'
+    blog_author = builder.config.root_get("author")
+    url = builder.config.root_get("canonical_url") or "http://localhost/"
+    feed_url = urljoin(url, builder.link_to("blog_feed"))
+    subtitle = builder.config.get("feed.subtitle") or "Recent blog posts"
     feed = FeedGenerator()
     feed.id(feed_url)
     feed.title(title)
     if subtitle:
         feed.subtitle(subtitle)
     feed.author(name=blog_author)
-    feed.language('en')
+    feed.language("en")
     feed.link(href=url)
-    feed.link(href=feed_url, rel='self')
+    feed.link(href=feed_url, rel="self")
 
     entries = sorted(entries, key=lambda x: x.pub_date, reverse=True)[:10]
     feed.updated(entries[0].pub_date.astimezone())
@@ -252,16 +254,16 @@ def generate_feed_str(builder, title, entries, subtitle=None):
     for entry in entries:
         entry_url = urljoin(url, entry.slug)
         content = fix_relative_urls(url, entry.slug, entry.render_contents())
-        categories = [{'term': x} for x in sorted(entry.tags)]
+        categories = [{"term": x} for x in sorted(entry.tags)]
         pub_date = entry.pub_date.astimezone()
 
         feed_entry = feed.add_entry()
         feed_entry.id(entry_url)
         feed_entry.title(entry.title)
-        feed_entry.link(href=entry_url, rel='self')
+        feed_entry.link(href=entry_url, rel="self")
         feed_entry.published(pub_date)
         feed_entry.updated(pub_date)
         feed_entry.category(categories)
-        feed_entry.content(content=content, type='html')
+        feed_entry.content(content=content, type="html")
 
-    return str(feed.atom_str(pretty=True), 'utf-8')
+    return str(feed.atom_str(pretty=True), "utf-8")
