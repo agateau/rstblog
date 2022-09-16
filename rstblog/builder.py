@@ -9,7 +9,6 @@
     :license: BSD, see LICENSE for more details.
 """
 import logging
-import re
 import os
 import posixpath
 from fnmatch import fnmatch
@@ -24,7 +23,7 @@ from babel import Locale, dates
 from werkzeug.routing import Map, Rule
 from werkzeug import url_unquote
 
-from markupsafe import Markup, escape
+from markupsafe import Markup
 
 from rstblog.signals import before_file_processed, \
      before_template_rendered, before_build_finished, \
