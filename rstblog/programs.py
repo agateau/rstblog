@@ -191,19 +191,6 @@ class HTMLProgram(TemplatedProgram):
         cfg, self.context.html = self.load_source()
 
 
-class RSTProgram(TemplatedProgram):
-    """A program that renders an rst file into a template"""
-    default_template = 'rst_display.html'
-
-    def prepare(self):
-        cfg, rst = self.load_source()
-        rv = self.context.render_rst(rst)
-        self.context.html = rv['fragment']
-
-    def render_contents(self):
-        return self.context.html
-
-
 class MarkdownProgram(TemplatedProgram):
     """A program that renders a markdown file into a template"""
     default_template = 'rst_display.html'

@@ -31,7 +31,7 @@ from rstblog.signals import before_file_processed, \
      before_file_built, after_file_prepared, \
      after_file_published
 from rstblog.modules import find_module
-from rstblog.programs import RSTProgram, HTMLProgram, CopyProgram, \
+from rstblog.programs import HTMLProgram, CopyProgram, \
     MarkdownProgram, SCSSProgram
 
 logger = logging
@@ -40,7 +40,6 @@ logger = logging
 OUTPUT_FOLDER = '_build'
 
 PROGRAM_CLASS_FOR_NAME = {
-    'rst':      RSTProgram,
     'html':     HTMLProgram,
     'copy':     CopyProgram,
     'md':       MarkdownProgram,
@@ -203,7 +202,6 @@ class BuildError(ValueError):
 class Builder(object):
     default_ignores = ('.*', '_*', '*.yml', 'Makefile', 'README', '*.conf', )
     default_programs = {
-        '*.rst':    'rst',
         '*.html':   'html',
         '*.md':     'md',
         '*.scss':   'scss',
