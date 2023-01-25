@@ -260,7 +260,7 @@ def generate_feed_str(builder, title, entries, subtitle=None):
         feed_entry = feed.add_entry()
         feed_entry.id(entry_url)
         feed_entry.title(entry.title)
-        feed_entry.link(href=entry_url, rel="self")
+        feed_entry.link(href=entry_url, rel="alternate")
         feed_entry.published(pub_date)
         feed_entry.updated(pub_date)
         feed_entry.category(categories)
