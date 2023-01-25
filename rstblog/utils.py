@@ -233,16 +233,13 @@ def get_og_properties(html_content):
     return OgProperties(description, url, alt)
 
 
-def generate_feed_str(builder, title, entries, subtitle=None):
+def generate_feed_str(builder, title, entries):
     blog_author = builder.config.root_get("author")
     url = builder.config.root_get("canonical_url") or "http://localhost/"
     feed_url = urljoin(url, builder.link_to("blog_feed"))
-    subtitle = builder.config.get("feed.subtitle") or "Recent blog posts"
     feed = FeedGenerator()
     feed.id(feed_url)
     feed.title(title)
-    if subtitle:
-        feed.subtitle(subtitle)
     feed.author(name=blog_author)
     feed.language("en")
     feed.link(href=url)
