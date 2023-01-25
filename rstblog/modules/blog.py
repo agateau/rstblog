@@ -103,7 +103,8 @@ def write_archive_pages(builder):
 def write_feed(builder):
     title = builder.config.get("feed.name") or "Recent Blog Posts"
     entries = get_all_entries(builder)
-    feed_str = generate_feed_str(builder, title, entries)
+    feed_path = builder.link_to("blog_feed")
+    feed_str = generate_feed_str(builder, feed_path, title, entries)
     with builder.open_link_file("blog_feed") as f:
         f.write(feed_str)
 

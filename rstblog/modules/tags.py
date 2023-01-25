@@ -66,7 +66,8 @@ def write_tags_page(builder):
 def write_tag_feed(builder, tag):
     title = "Posts tagged {}".format(tag.name)
     entries = get_tagged_entries(builder, tag)
-    feed_str = generate_feed_str(builder, title, entries)
+    feed_path = builder.link_to("tagfeed", tag=tag.name)
+    feed_str = generate_feed_str(builder, feed_path, title, entries)
     with builder.open_link_file("tagfeed", tag=tag.name) as f:
         f.write(feed_str)
 

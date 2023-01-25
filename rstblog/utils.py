@@ -233,10 +233,10 @@ def get_og_properties(html_content):
     return OgProperties(description, url, alt)
 
 
-def generate_feed_str(builder, title, entries):
+def generate_feed_str(builder, feed_path, title, entries):
     blog_author = builder.config.root_get("author")
     url = builder.config.root_get("canonical_url") or "http://localhost/"
-    feed_url = urljoin(url, builder.link_to("blog_feed"))
+    feed_url = urljoin(url, feed_path)
     feed = FeedGenerator()
     feed.id(feed_url)
     feed.title(title)
