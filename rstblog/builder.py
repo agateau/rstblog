@@ -308,7 +308,11 @@ class Builder(object):
         result = []
         for filename in files:
             for pattern in patterns:
-                if fnmatch(filename, pattern):
+                if pattern[0] == "!":
+                    if fnmatch(filename, pattern[1:]):
+                        result.append(filename)
+                        break
+                elif fnmatch(filename, pattern):
                     break
             else:
                 result.append(filename)
