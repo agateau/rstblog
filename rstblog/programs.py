@@ -29,7 +29,13 @@ from rstblog.utils import (
     get_og_properties,
 )
 
-MARKDOWN_EXTENSIONS = {"fenced_code": {}, "codehilite": {"guess_lang": False}}
+MARKDOWN_EXTENSIONS = {
+    "tables": {},
+    "fenced_code": {},
+    "codehilite": {
+        "guess_lang": False,
+    },
+}
 
 HEADER_LIMIT = "---"
 
