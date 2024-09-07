@@ -108,6 +108,8 @@ def fix_relative_url(base_url, slug, input_url):
     path = rv.path
     if path[0] != "/":
         path = os.path.normpath(os.path.join(slug, path))
+    if rv.fragment:
+        path = f"{path}#{rv.fragment}"
     return urljoin(base_url, path)
 
 
