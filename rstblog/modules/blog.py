@@ -60,7 +60,7 @@ def get_all_entries(builder):
     return result
 
 
-def get_archive_summary(builder):
+def get_archive_summary(builder) -> list[YearArchive]:
     """Returns a summary of the stuff in the archives."""
     storage = builder.get_storage("blog")
     years = list(storage.items())
@@ -73,6 +73,13 @@ def write_archive_pages(builder):
     with builder.open_link_file("blog_archive") as f:
         rv = builder.render_template("blog/archive.html", {"archive": archive})
         f.write(rv + "\n")
+
+    for year_archive in archive:
+        with builder.open_link_file("blog_year_archive", year=year_archive.year) as f:
+            rv = builder.render_template(
+                "blog/year_archive.html", {"entry": year_archive}
+            )
+            f.write(rv + "\n")
 
 
 def write_feed(builder):
@@ -96,6 +103,11 @@ def setup(builder):
         "blog_archive",
         config_key="modules.blog.archive_url",
         config_default="/blog/",
+    )
+    builder.register_url(
+        "blog_year_archive",
+        config_key="modules.blog.archive_year_url",
+        config_default="/blog/<year>/",
     )
     builder.register_url(
         "blog_feed", config_key="modules.blog.feed_url", config_default="/feed.atom"
