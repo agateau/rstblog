@@ -11,13 +11,12 @@
 
 
 from datetime import datetime
-from urllib.parse import urljoin
 
 from jinja2 import pass_context
 from werkzeug.routing import Map, NotFound, Rule
 
 from rstblog.signals import after_file_published, before_build_finished
-from rstblog.utils import Pagination, fix_relative_urls, generate_feed_str
+from rstblog.utils import Pagination, generate_feed_str
 
 
 class YearArchive(object):
