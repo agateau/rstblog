@@ -71,28 +71,6 @@ def get_archive_summary(builder):
     return [YearArchive(builder, year, entries) for year, entries in years]
 
 
-@pass_context
-def get_recent_blog_entries(context, limit=10):
-    return get_all_entries(context["builder"])[:limit]
-
-
-def write_index_page(builder):
-    use_pagination = builder.config.root_get("modules.blog.use_pagination", True)
-    per_page = builder.config.root_get("modules.blog.per_page", 10)
-    entries = get_all_entries(builder)
-    pagination = Pagination(builder, entries, 1, per_page, "blog_index")
-    while 1:
-        with builder.open_link_file("blog_index", page=pagination.page) as f:
-            rv = builder.render_template(
-                "blog/index.html",
-                {"pagination": pagination, "show_pagination": use_pagination},
-            )
-            f.write(rv + "\n")
-            if not use_pagination or not pagination.has_next:
-                break
-            pagination = pagination.get_next()
-
-
 def write_archive_pages(builder):
     archive = get_archive_summary(builder)
     with builder.open_link_file("blog_archive") as f:
@@ -110,7 +88,6 @@ def write_feed(builder):
 
 
 def write_blog_files(builder):
-    write_index_page(builder)
     write_archive_pages(builder)
     write_feed(builder)
 
@@ -119,22 +96,10 @@ def setup(builder):
     after_file_published.connect(process_blog_entry)
     before_build_finished.connect(write_blog_files)
     builder.register_url(
-        "blog_index",
-        config_key="modules.blog.index_url",
-        config_default="/",
-        defaults={"page": 1},
-    )
-    builder.register_url(
-        "blog_index",
-        config_key="modules.blog.paged_index_url",
-        config_default="/page/<page>/",
-    )
-    builder.register_url(
         "blog_archive",
         config_key="modules.blog.archive_url",
-        config_default="/archive/",
+        config_default="/blog/",
     )
     builder.register_url(
         "blog_feed", config_key="modules.blog.feed_url", config_default="/feed.atom"
     )
-    builder.jinja_env.globals.update(get_recent_blog_entries=get_recent_blog_entries)
