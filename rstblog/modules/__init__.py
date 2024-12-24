@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-    rstblog.modules
-    ~~~~~~~~~~~~~~~
+rstblog.modules
+~~~~~~~~~~~~~~~
 
-    The module interface.
+The module interface.
 
-    :copyright: (c) 2010 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by Armin Ronacher.
+:license: BSD, see LICENSE for more details.
 """
 
 

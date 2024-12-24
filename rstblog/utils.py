@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-    rstblog.utils
-    ~~~~~~~~~~~~~
+rstblog.utils
+~~~~~~~~~~~~~
 
-    Various utilities.
+Various utilities.
 
-    :copyright: (c) 2010 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by Armin Ronacher.
+:license: BSD, see LICENSE for more details.
 """
+
 import os
 import re
 from collections import namedtuple

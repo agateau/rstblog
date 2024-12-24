@@ -1,12 +1,13 @@
 """
-    rstblog.modules.directiveutils
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rstblog.modules.directiveutils
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Utilities to work with RST directives
+Utilities to work with RST directives
 
-    :copyright: (c) 2017 by Aurélien Gâteau.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2017 by Aurélien Gâteau.
+:license: BSD, see LICENSE for more details.
 """
+
 import os
 
 

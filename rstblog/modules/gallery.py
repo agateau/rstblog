@@ -1,12 +1,13 @@
 """
-    rstblog.modules.gallery
-    ~~~~~~~~~~~~~~~~~~~~~~~
+rstblog.modules.gallery
+~~~~~~~~~~~~~~~~~~~~~~~
 
-    Image gallery.
+Image gallery.
 
-    :copyright: (c) 2017 by Aurélien Gâteau.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2017 by Aurélien Gâteau.
+:license: BSD, see LICENSE for more details.
 """
+
 from pathlib import Path
 
 import yaml

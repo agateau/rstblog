@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-    rstblog.programs
-    ~~~~~~~~~~~~~~~~
+rstblog.programs
+~~~~~~~~~~~~~~~~
 
-    Builtin build programs.
+Builtin build programs.
 
-    :copyright: (c) 2010 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by Armin Ronacher.
+:license: BSD, see LICENSE for more details.
 """
 
 import os

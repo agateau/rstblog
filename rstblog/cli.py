@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-    rstblog.cli
-    ~~~~~~~~~~~
+rstblog.cli
+~~~~~~~~~~~
 
-    The command line interface
+The command line interface
 
-    :copyright: (c) 2010 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by Armin Ronacher.
+:license: BSD, see LICENSE for more details.
 """
 
 import os

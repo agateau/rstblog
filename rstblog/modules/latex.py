@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-    rstblog.modules.latex
-    ~~~~~~~~~~~~~~~~~~~~~
+rstblog.modules.latex
+~~~~~~~~~~~~~~~~~~~~~
 
-    Simple latex support for formulas.
+Simple latex support for formulas.
 
-    :copyright: (c) 2010 by Armin Ronacher, Georg Brandl.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by Armin Ronacher, Georg Brandl.
+:license: BSD, see LICENSE for more details.
 """
+
 import os
 import re
 import shutil

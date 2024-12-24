@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-    rstblog.modules.thumbimg
-    ~~~~~~~~~~~~~~~~~~~~~~~~
+rstblog.modules.thumbimg
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-    An image tag with automatic thumbnails
+An image tag with automatic thumbnails
 
-    :copyright: (c) 2012 by Aurélien Gâteau.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2012 by Aurélien Gâteau.
+:license: BSD, see LICENSE for more details.
 """
+
 from docutils.parsers.rst import directives
 from docutils.parsers.rst.directives.images import Image
 

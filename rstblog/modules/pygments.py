@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-    rstblog.modules.pygments
-    ~~~~~~~~~~~~~~~~~~~~~~~~
+rstblog.modules.pygments
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Adds support for pygments.
+Adds support for pygments.
 
-    :copyright: (c) 2010 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by Armin Ronacher.
+:license: BSD, see LICENSE for more details.
 """
 
 from docutils import nodes

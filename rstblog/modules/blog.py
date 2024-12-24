@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-    rstblog.modules.blog
-    ~~~~~~~~~~~~~~~~~~~~
+rstblog.modules.blog
+~~~~~~~~~~~~~~~~~~~~
 
-    The blog component.
+The blog component.
 
-    :copyright: (c) 2010 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by Armin Ronacher.
+:license: BSD, see LICENSE for more details.
 """
-
 
 from datetime import datetime
 

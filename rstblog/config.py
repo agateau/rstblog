@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-    rstblog.config
-    ~~~~~~~~~~~~~~
+rstblog.config
+~~~~~~~~~~~~~~
 
-    Holds the configuration and can read it from another file.
+Holds the configuration and can read it from another file.
 
-    :copyright: (c) 2010 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by Armin Ronacher.
+:license: BSD, see LICENSE for more details.
 """
+
 import yaml
 
 missing = object()

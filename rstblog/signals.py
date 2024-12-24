@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-    rstblog.signals
-    ~~~~~~~~~~~~~~~
+rstblog.signals
+~~~~~~~~~~~~~~~
 
-    Blinker signals for the modules and other hooks.
+Blinker signals for the modules and other hooks.
 
-    :copyright: (c) 2010 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by Armin Ronacher.
+:license: BSD, see LICENSE for more details.
 """
+
 from blinker import Namespace
 
 signals = Namespace()
