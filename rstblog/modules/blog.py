@@ -11,11 +11,10 @@ The blog component.
 
 from datetime import datetime
 
-from jinja2 import pass_context
 from werkzeug.routing import Map, NotFound, Rule
 
 from rstblog.signals import after_file_published, before_build_finished
-from rstblog.utils import Pagination, generate_feed_str
+from rstblog.utils import generate_feed_str
 
 
 class YearArchive(object):

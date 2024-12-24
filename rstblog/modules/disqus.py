@@ -16,7 +16,6 @@ To prevent comments on a particular page, set ``disqus = no`` in the page's YAML
 :license: BSD, see LICENSE for more details.
 """
 
-import types
 import urllib.parse
 
 import jinja2
