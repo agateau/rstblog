@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 rstblog.modules.thumbimg
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -30,7 +29,7 @@ class ThumbImg(Image):
 
         self.arguments[0] = thumbnail.relpath
         self.options["target"] = big_filename
-        return super(ThumbImg, self).run()
+        return super().run()
 
 
 def setup(builder):

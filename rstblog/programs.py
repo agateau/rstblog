@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 rstblog.programs
 ~~~~~~~~~~~~~~~~
@@ -14,7 +13,7 @@ import shutil
 import subprocess
 from datetime import datetime
 from io import StringIO
-from typing import Any, Dict, Tuple
+from typing import Any
 from weakref import ref
 
 import markdown
@@ -40,7 +39,7 @@ MARKDOWN_EXTENSIONS = {
 HEADER_LIMIT = "---"
 
 
-class Program(object):
+class Program:
     def __init__(self, context):
         self._context = ref(context)
 
@@ -128,7 +127,7 @@ class TemplatedProgram(Program):
     def render_contents(self):
         return self.context.html
 
-    def load_source(self) -> Tuple[Dict[str, Any], str]:
+    def load_source(self) -> tuple[dict[str, Any], str]:
         """
         Load source page, process header, returns a tuple of (cfg, source body)
         """

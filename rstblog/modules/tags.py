@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 rstblog.modules.tags
 ~~~~~~~~~~~~~~~~~~~~
@@ -15,7 +14,7 @@ from rstblog.signals import after_file_published, before_build_finished
 from rstblog.utils import generate_feed_str
 
 
-class Tag(object):
+class Tag:
     def __init__(self, name, count):
         self.group = name[0].lower()
         self.name = name
@@ -65,7 +64,7 @@ def write_tags_page(builder):
 
 
 def write_tag_feed(builder, tag):
-    title = "Posts tagged {}".format(tag.name)
+    title = f"Posts tagged {tag.name}"
     entries = get_tagged_entries(builder, tag)
     feed_path = builder.link_to("tagfeed", tag=tag.name)
     feed_str = generate_feed_str(builder, feed_path, title, entries)

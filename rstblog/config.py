@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 rstblog.config
 ~~~~~~~~~~~~~~
@@ -14,7 +13,7 @@ import yaml
 missing = object()
 
 
-class Config(object):
+class Config:
     """A stacked config."""
 
     def __init__(self):

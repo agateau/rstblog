@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 rstblog.modules.disqus
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -29,8 +28,8 @@ def disqus_vars_from_dict(dct):
         elif isinstance(value, str):
             value = '"%s"' % jinja2.Markup(value).striptags().replace('"', r"\"")
         else:
-            raise Exception("Unsupported type for disqus variable %s=%r" % (key, value))
-        lst.append("var disqus_%s = %s;" % (key, value))
+            raise Exception(f"Unsupported type for disqus variable {key}={value!r}")
+        lst.append(f"var disqus_{key} = {value};")
     return "\n".join(lst)
 
 

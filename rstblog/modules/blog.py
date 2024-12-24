@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 rstblog.modules.blog
 ~~~~~~~~~~~~~~~~~~~~
@@ -17,7 +16,7 @@ from rstblog.signals import after_file_published, before_build_finished
 from rstblog.utils import generate_feed_str
 
 
-class YearArchive(object):
+class YearArchive:
     def __init__(self, builder, year, entries):
         self.year = year
         self.entries = sorted(entries, key=lambda x: x.pub_date, reverse=True)

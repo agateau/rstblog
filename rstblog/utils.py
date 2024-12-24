@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 rstblog.utils
 ~~~~~~~~~~~~~
@@ -92,7 +91,7 @@ def generate_thumbnail(base_path, image_relpath, size, square=False):
     image_abspath = os.path.join(base_path, image_relpath)
 
     if need_update(thumbnail_abspath, image_abspath):
-        print("  Generating thumbnail for {}".format(image_relpath))
+        print(f"  Generating thumbnail for {image_relpath}")
         big_img = PIL.Image.open(image_abspath)
         if square:
             ratio = min(big_img.size) / float(size)

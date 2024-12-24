@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 rstblog.builder
 ~~~~~~~~~~~~~~~
@@ -48,7 +47,7 @@ PROGRAM_CLASS_FOR_NAME = {
 BUILTIN_TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "templates")
 
 
-class Context(object):
+class Context:
     """Per rendering information"""
 
     def __init__(self, builder, config, source_filename, prepare=False):
@@ -201,7 +200,7 @@ class BuildError(ValueError):
     pass
 
 
-class Builder(object):
+class Builder:
     default_ignores = (
         ".*",
         "_*",
@@ -367,8 +366,7 @@ class Builder(object):
                 else:
                     sub_config = local_config
 
-                for ctx in _walk(sub_config, os.path.join(dirpath, dirname)):
-                    yield ctx
+                yield from _walk(sub_config, os.path.join(dirpath, dirname))
 
             for filename in filenames:
                 yield Context(
@@ -378,8 +376,7 @@ class Builder(object):
                     prepare,
                 )
 
-        for ctx in _walk(self.config, self.project_folder):
-            yield ctx
+        yield from _walk(self.config, self.project_folder)
 
     def anything_needs_build(self):
         for context in self.iter_contexts(prepare=False):

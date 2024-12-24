@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 rstblog.modules.latex
 ~~~~~~~~~~~~~~~~~~~~~
@@ -129,7 +128,7 @@ def render_math(context, math):
     finally:
         try:
             shutil.rmtree(tempdir)
-        except (IOError, OSError):
+        except OSError:
             # might happen? unsure
             pass
 
@@ -137,7 +136,7 @@ def render_math(context, math):
 
 
 def make_imgtag(url, depth, latex):
-    bits = ['<img src="%s" alt="%s"' % (escape(url), escape(latex))]
+    bits = [f'<img src="{escape(url)}" alt="{escape(latex)}"']
     if depth is not None:
         bits.append(' style="vertical-align: %dpx"' % -depth)
     bits.append(">")
