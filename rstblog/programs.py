@@ -161,11 +161,17 @@ class TemplatedProgram(Program):
             if not line or line == HEADER_LIMIT:
                 break
             headers.append(line)
-        cfg = yaml.load(StringIO("\n".join(headers)), yaml.SafeLoader)
+        header_yaml = "\n".join(headers)
+        try:
+            cfg = yaml.load(StringIO(header_yaml), yaml.SafeLoader)
+        except yaml.scanner.ScannerError as e:
+            raise ValueError(
+                f"{self.context.source_filename}: failed to load metadata."
+                f" Metadata:\n{header_yaml}\n\nError: {e}"
+            )
         if cfg and not isinstance(cfg, dict):
             raise ValueError(
-                'expected dict config in file "%s", got: %.40r'
-                % (self.context.source_filename, cfg)
+                f"{self.context.source_filename}: expected dict config, got: {cfg}"
             )
         return cfg
 
